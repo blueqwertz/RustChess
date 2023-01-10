@@ -240,7 +240,7 @@ pub enum Square {
 //         }
 //     }
 // }
-
+#[derive(Debug)]
 pub enum Kind {
     King,
     Queen,
@@ -250,7 +250,7 @@ pub enum Kind {
     Pawn,
     Undefined,
 }
-
+#[derive(Debug)]
 pub enum Color {
     White,
     Black,
