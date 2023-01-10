@@ -5,6 +5,10 @@ pub struct BitBoard(pub u64);
 
 impl BitBoard {
 
+    pub fn empty() -> Self {
+        Self(0)
+    }
+
     pub fn print(&self) {
         println!("Value: {}", &self.0);
         println!();
@@ -26,16 +30,16 @@ impl BitBoard {
         println!();
     }
 
-    pub fn empty() -> Self {
-        Self(0)
-    }
-
     pub fn from_sq(square: u8) -> Self {
         Self(1 << square)
     }
 
     pub fn set_bit(&mut self, square: u8) {
         self.0 |= BitBoard::from_sq(square).0;
+    }
+
+    pub fn unset_bit(&mut self, square: u8) {
+        self.0 != BitBoard::from_sq(square).0;
     }
 
     pub fn toggle_bit(&mut self, square: u8) {
@@ -83,6 +87,76 @@ impl BitPos {
         }
     }
 
+    pub fn bit_move(&mut self, color: Color, kind: u8, from: u8, to: u8) {
+        &self.all.unset_bit(from);
+        &self.all.set_bit(to);
+        match color {
+            Color::White => {
+                &self.white.unset_bit(from);
+                &self.white.set_bit(to);
+                match kind {
+                    1 => {
+                        &self.wk.unset_bit(from);
+                        &self.wk.set_bit(to);
+                    },
+                    2 => {
+                        &self.wq.unset_bit(from);
+                        &self.wq.set_bit(to);
+                    },
+                    3 => {
+                        &self.wb.unset_bit(from);
+                        &self.wb.set_bit(to);
+                    },
+                    4 => {
+                        &self.wn.unset_bit(from);
+                        &self.wn.set_bit(to);
+                    },
+                    5 => {
+                        &self.wr.unset_bit(from);
+                        &self.wr.set_bit(to);
+                    },
+                    6 => {
+                        &self.wp.unset_bit(from);
+                        &self.wp.set_bit(to);
+                    },
+                    _ => {}
+                }
+            },
+            Color::Black => {
+                &self.black.unset_bit(from);
+                &self.black.set_bit(to);
+                match kind {
+                        1 => {
+                    &self.bk.unset_bit(from);
+                    &self.bk.set_bit(to);
+                    },
+                        2 => {
+                    &self.bq.unset_bit(from);
+                    &self.bq.set_bit(to);
+                    },
+                        3 => {
+                    &self.bb.unset_bit(from);
+                    &self.bb.set_bit(to);
+                    },
+                        4 => {
+                    &self.bn.unset_bit(from);
+                    &self.bn.set_bit(to);
+                    },
+                        5 => {
+                    &self.br.unset_bit(from);
+                    &self.br.set_bit(to);
+                    },
+                        6 => {
+                    &self.bp.unset_bit(from);
+                    &self.bp.set_bit(to);
+                    },
+                    _ => {}
+                }
+            }
+            _ => {}
+        }
+    }
+
     pub fn from_fen(fen: &str) -> BitPos {
         let mut bitpos = BitPos::empty();
         let mut position:u8 = 0;
@@ -116,6 +190,9 @@ impl BitPos {
             }
             position += 1
         }
+        bitpos.white.0 = bitpos.wp.0 | bitpos.wn.0 | bitpos.wb.0 | bitpos.wr.0 | bitpos.wq.0 | bitpos.wk.0;
+        bitpos.black.0 = bitpos.bp.0 | bitpos.bn.0 | bitpos.bb.0 | bitpos.br.0 | bitpos.bq.0 | bitpos.bk.0;
+        bitpos.all.0 = bitpos.white.0 | bitpos.black.0;
         bitpos
     }
 }
