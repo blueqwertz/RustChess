@@ -1,5 +1,3 @@
-use crate::engine::bitboard::Color::Undefined;
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct BitBoard(pub u64);
 
@@ -7,6 +5,10 @@ impl BitBoard {
 
     pub fn empty() -> Self {
         Self(0)
+    }
+
+    pub fn from(num: u64) -> Self {
+        Self(num)
     }
 
     pub fn print(&self) {
@@ -44,6 +46,10 @@ impl BitBoard {
 
     pub fn toggle_bit(&mut self, square: u8) {
         self.0 ^= BitBoard::from_sq(square).0;
+    }
+
+    pub fn get_bit(&self, square: u8) -> bool {
+        (self.0 & (1 << square)) != 0
     }
 
 }
@@ -161,11 +167,71 @@ impl BitPos {
         }
     }
 
+    pub fn print(&self) {
+        let mut board: Vec<char> = Vec::new();
+        println!("Value: {}", &self.all.0);
+        println!();
+        let mut x = 8;
+        for rank in 0..8 {
+            print!("\x1b[34m{}\x1b[0m  ", x);
+            x -= 1;
+            for file in 0..8 {
+                let square = rank * 8 + file;
+                if &self.all.0 & (1 << square) != 0 {
+                    if &self.wp.0 & (1 << square) != 0 {
+                        print!("\x1b[1mp\x1b[0m ")
+                    }
+                    else if &self.wn.0 & (1 << square) != 0 {
+                        print!("\x1b[1mn\x1b[0m ")
+                    }
+                    else if &self.wb.0 & (1 << square) != 0 {
+                        print!("\x1b[1mb\x1b[0m ")
+                    }
+                    else if &self.wr.0 & (1 << square) != 0 {
+                        print!("\x1b[1mr\x1b[0m ")
+                    }
+                    else if &self.wq.0 & (1 << square) != 0 {
+                        print!("\x1b[1mq\x1b[0m ")
+                    }
+                    else if &self.wk.0 & (1 << square) != 0 {
+                        print!("\x1b[1mk\x1b[0m ")
+                    }
+                    else if &self.bp.0 & (1 << square) != 0 {
+                        print!("\x1b[1mP\x1b[0m ")
+                    }
+                    else if &self.bn.0 & (1 << square) != 0 {
+                        print!("\x1b[1mN\x1b[0m ")
+                    }
+                    else if &self.bb.0 & (1 << square) != 0 {
+                        print!("\x1b[1mB\x1b[0m ")
+                    }
+                    else if &self.br.0 & (1 << square) != 0 {
+                        print!("\x1b[1mR\x1b[0m ")
+                    }
+                    else if &self.bq.0 & (1 << square) != 0 {
+                        print!("\x1b[1mQ\x1b[0m ")
+                    }
+                    else if &self.bk.0 & (1 << square) != 0 {
+                        print!("\x1b[1mK\x1b[0m ")
+                    } else {
+                        print!("\x1b[1m1\x1b[0m ")
+                    }
+                }
+                else {
+                    print!("\x1b[38;5;8m0\x1b[0m ");
+                }
+            }
+            println!();
+        }
+        println!("\x1b[34m   a b c d e f g h\x1b[0m");
+        println!();
+    }
+
     pub fn from_fen(fen: &str) -> BitPos {
         let mut bitpos = BitPos::empty();
         let mut position:u8 = 0;
         for p in fen.chars() {
-            println!("{p} {position}");
+            // println!("{p} {position}");
             match p {
                 'P' => bitpos.wp.set_bit(position),
                 'N' => bitpos.wn.set_bit(position),
@@ -180,6 +246,7 @@ impl BitPos {
                 'q' => bitpos.bq.set_bit(position),
                 'k' => bitpos.bk.set_bit(position),
                 '/' => position = (position + 8 % 8) - 1,
+                '1' => {},
                 '2' => position += 1,
                 '3' => position += 2,
                 '4' => position += 3,

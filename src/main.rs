@@ -1,10 +1,9 @@
 pub mod engine;
-use engine::bitboard::*;
-use engine::movegen::*;
+use engine::bitboard::BitPos;
+use engine::movegen::movegen;
 
 fn main() {
-    let mut board = engine::bitboard::BitPos::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-    board.white.print();
-    board.black.print();
+    let board = BitPos::from_fen("rnb1kbnr/pppqp1pp/8/1B1p1p2/4P3/2N2N2/PPPP1PPP/R1BQK2R w KQkq - 0 1");
+    board.print();
     movegen(board);
 }

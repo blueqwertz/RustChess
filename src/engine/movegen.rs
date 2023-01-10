@@ -1,10 +1,7 @@
-use std::collections::HashMap;
-use crate::engine::bitboard::{BitBoard, BitPos, Color, Kind, Square};
+use crate::engine::bitboard::{BitPos, Color, Kind, Square};
 
 pub fn movegen(board: BitPos) {
     let mut moves: Vec<Move> = Vec::new();
-
-
 
     for pos_move in moves {
         pos_move.print();
