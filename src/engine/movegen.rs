@@ -30,13 +30,28 @@ impl Move {
     }
 }
 
-fn pawn_moves(position: u8, color: u8, kind: u8, boards: BitPos) -> Vec<Move> {
+fn pawn_moves(position: u8, color: u8, kind: u8, mut boards: BitPos) -> Vec<Move> {
     //     -16*
     // -9* -8 -7*
     //      X
     //  7*  8   9*
     //      16*
+
     let mut pos_moves: Vec<Move> = Vec::new();
+
+    match color {
+        1 => {
+            if boards.pinned_white.get_bit(position) {
+                return pos_moves
+            }
+        },
+        2 => {
+            if boards.pinned_black.get_bit(position) {
+                return pos_moves
+            }
+        },
+        _ => {}
+    }
 
     let (x, y) = (position % 8, ((position / 8) as f32).floor() as u8);
 
@@ -52,10 +67,12 @@ fn pawn_moves(position: u8, color: u8, kind: u8, boards: BitPos) -> Vec<Move> {
                 }
             }
             if boards.black.get_bit(position - 9) {
-                pos_moves.push(Move::new(Color::White, Kind::Pawn, position, position - 9))
+                pos_moves.push(Move::new(Color::White, Kind::Pawn, position, position - 9));
+                boards.attack_white.set_bit(position - 9);
             }
             if boards.black.get_bit(position - 7) {
-                pos_moves.push(Move::new(Color::White, Kind::Pawn, position, position - 7))
+                pos_moves.push(Move::new(Color::White, Kind::Pawn, position, position - 7));
+                boards.attack_white.set_bit(position - 7);
             }
         },
         1 => {
@@ -68,10 +85,12 @@ fn pawn_moves(position: u8, color: u8, kind: u8, boards: BitPos) -> Vec<Move> {
                 }
             }
             if boards.white.get_bit(position + 9) {
-                pos_moves.push(Move::new(Color::White, Kind::Pawn, position, position + 9))
+                pos_moves.push(Move::new(Color::White, Kind::Pawn, position, position + 9));
+                boards.attack_black.set_bit(position + 16);
             }
             if boards.white.get_bit(position + 7) {
-                pos_moves.push(Move::new(Color::White, Kind::Pawn, position, position + 7))
+                pos_moves.push(Move::new(Color::White, Kind::Pawn, position, position + 7));
+                boards.attack_black.set_bit(position + 16);
             }
         },
         _ => {}
