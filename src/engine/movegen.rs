@@ -1,4 +1,7 @@
+
 use std::time::Instant;
+use crate::Color::*;
+use crate::Kind::*;
 use crate::engine::bitboard::{BitBoard, BitPos, Color, Kind, Square};
 const BOARD_MAX:u8 = 63;
 
@@ -7,7 +10,7 @@ pub fn movegen(board: BitPos) {
     let mut moves: Vec<Move> = Vec::new();
     moves.push(Move::new(Color::Black, Kind::Bishop, 0, 1));
     println!("{moves:?}");
-    println!("{:?}", KingMove(28,board))
+    println!("{:?}", KingMove(28,Black,board))
 }
 
 #[derive(Debug)]
@@ -26,7 +29,7 @@ impl Move {
 }
 
 
-fn KingMove(position: u8, boards: BitPos) -> Vec<Move>{
+fn KingMove(position: u8,color: Color, mut boards: BitPos) -> Vec<Move>{
     //Langsamer
     /*
     let now = Instant::now();
@@ -67,39 +70,54 @@ fn KingMove(position: u8, boards: BitPos) -> Vec<Move>{
     println!("{:?}", has_space_up);
     println!("{:?}", has_space_down);
     */
-    if has_space_up{
+    let (mut attackboard, ownboard) = match color {
+        Color::Black => (boards.attack_black, boards.black),
+        Color::White => (boards.attack_white, boards.white),
+        Color::Undefined => panic!("undefined Colour")
+    };
+
+    if has_space_up && !ownboard.get_bit(position-8){
         let one_row_up = position - 8;
-        possiblemoves.push(Move::new(Color::Black,Kind::King,position, one_row_up));
 
-        if has_space_left{
+        possiblemoves.push(Move::new(color,Kind::King,position, one_row_up));
+        attackboard.set_bit(one_row_up);
+
+        if has_space_left && !ownboard.get_bit(position-9){
             let one_up_left = position - 9;
-            possiblemoves.push(Move::new(Color::Black,Kind::King,position, one_up_left))
+            possiblemoves.push(Move::new(color,Kind::King,position, one_up_left));
+            attackboard.set_bit(one_up_left)
         }
-        if has_space_right{
+        if has_space_right && !ownboard.get_bit(position-7){
             let one_up_right = position - 7;
-            possiblemoves.push(Move::new(Color::Black,Kind::King,position, one_up_right))
+            possiblemoves.push(Move::new(color,Kind::King,position, one_up_right));
+            attackboard.set_bit(one_up_right)
         }
     }
-    if has_space_down{
+    if has_space_down && !ownboard.get_bit(position+8){
         let one_row_down = position + 8;
-        possiblemoves.push(Move::new(Color::Black,Kind::King,position, one_row_down));
+        possiblemoves.push(Move::new(color,Kind::King,position, one_row_down));
+        attackboard.set_bit(one_row_down);
 
-        if has_space_left{
+        if has_space_left && !ownboard.get_bit(position+7){
             let one_down_left = position + 7;
-            possiblemoves.push(Move::new(Color::Black,Kind::King,position, one_down_left))
+            possiblemoves.push(Move::new(color,Kind::King,position, one_down_left));
+            attackboard.set_bit(one_row_down);
         }
-        if has_space_right{
+        if has_space_right && !ownboard.get_bit(position+9){
             let one_down_right = position + 9;
-            possiblemoves.push(Move::new(Color::Black,Kind::King,position, one_down_right))
+            possiblemoves.push(Move::new(color,Kind::King,position, one_down_right));
+            attackboard.set_bit(one_down_right);
         }
     }
-    if has_space_left{
+    if has_space_left && !ownboard.get_bit(position-1){
         let one_row_left = position - 1;
-        possiblemoves.push(Move::new(Color::Black,Kind::King,position, one_row_left));
+        possiblemoves.push(Move::new(color.clone(),Kind::King,position, one_row_left));
+        attackboard.set_bit(one_row_left);
     }
-    if has_space_right{
+    if has_space_right && !ownboard.get_bit(position+1){
         let one_row_right = position + 1;
-        possiblemoves.push(Move::new(Color::Black,Kind::King,position, one_row_right))
+        possiblemoves.push(Move::new(color.clone(),Kind::King,position, one_row_right));
+        attackboard.set_bit(one_row_right);
     }
     println!("{}", now.elapsed().as_nanos());
 

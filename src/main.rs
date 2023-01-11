@@ -1,3 +1,5 @@
+extern crate core;
+
 pub mod engine;
 use engine::bitboard::*;
 use crate::engine::movegen::movegen;
