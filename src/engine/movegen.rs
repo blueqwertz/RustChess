@@ -32,11 +32,50 @@ impl Move {
 
 fn pawn_moves(position: u8, color: u8, kind: u8, boards: BitPos) -> Vec<Move> {
     //     -16*
-    // -9* - 8 -7*
+    // -9* -8 -7*
+    //      X
+    //  7*  8   9*
+    //      16*
+    let mut pos_moves: Vec<Move> = Vec::new();
 
-    let pos_moves: Vec<Move> = Vec::new();
+    let (x, y) = (position % 8, ((position / 8) as f32).floor() as u8);
 
     // generate moves
+    match color {
+        0 => {
+            if !boards.black.get_bit(position - 8) {
+                pos_moves.push(Move::new(Color::White, Kind::Pawn, position, position - 8));
+                if y == 7 {
+                    if !boards.black.get_bit(position - 16) {
+                        pos_moves.push(Move::new(Color::White, Kind::Pawn, position, position - 16));
+                    }
+                }
+            }
+            if boards.black.get_bit(position - 9) {
+                pos_moves.push(Move::new(Color::White, Kind::Pawn, position, position - 9))
+            }
+            if boards.black.get_bit(position - 7) {
+                pos_moves.push(Move::new(Color::White, Kind::Pawn, position, position - 7))
+            }
+        },
+        1 => {
+            if !boards.white.get_bit(position + 8) {
+                pos_moves.push(Move::new(Color::Black, Kind::Pawn, position, position + 8));
+                if y == 7 {
+                    if !boards.white.get_bit(position + 16) {
+                        pos_moves.push(Move::new(Color::Black, Kind::Pawn, position, position + 16));
+                    }
+                }
+            }
+            if boards.white.get_bit(position + 9) {
+                pos_moves.push(Move::new(Color::White, Kind::Pawn, position, position + 9))
+            }
+            if boards.white.get_bit(position + 7) {
+                pos_moves.push(Move::new(Color::White, Kind::Pawn, position, position + 7))
+            }
+        },
+        _ => {}
+    }
 
     pos_moves
 }

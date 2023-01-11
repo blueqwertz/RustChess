@@ -60,6 +60,8 @@ pub struct BitPos {
     pub black: BitBoard,
     pub attack_white: BitBoard,
     pub attack_black: BitBoard,
+    pub pinned_white: BitBoard,
+    pub pinned_black: BitBoard,
     pub wp: BitBoard, // white pawns
     pub wn: BitBoard, // white knights
     pub wb: BitBoard, // white bishops
@@ -75,6 +77,7 @@ pub struct BitPos {
 }
 
 impl BitPos {
+
     pub fn empty () -> Self {
         Self {
             all: BitBoard::empty(),
@@ -82,6 +85,8 @@ impl BitPos {
             black: BitBoard::empty(),
             attack_white: BitBoard::empty(),
             attack_black: BitBoard::empty(),
+            pinned_white: BitBoard::empty(),
+            pinned_black: BitBoard::empty(),
             wp: BitBoard::empty(),
             wn: BitBoard::empty(),
             wb: BitBoard::empty(),
@@ -266,6 +271,7 @@ impl BitPos {
         bitpos.all.0 = bitpos.white.0 | bitpos.black.0;
         bitpos
     }
+
 }
 
 #[rustfmt::skip]
