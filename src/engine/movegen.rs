@@ -1,7 +1,7 @@
 use crate::engine::bitboard::{BitBoard, BitPos, Color, Kind, Square};
 use std::time::Instant;
 
-pub fn movegen(board: BitPos, color: u8, knight_boards: [BitBoard; 64]) {
+pub fn movegen(board: &mut BitPos, color: u8, knight_boards: [BitBoard; 64]) -> Vec<Move> {
     let now = Instant::now();
 
     let mut moves = Vec::new();
@@ -11,12 +11,12 @@ pub fn movegen(board: BitPos, color: u8, knight_boards: [BitBoard; 64]) {
             for i in 0u8..64u8 {
                 if board.white.get_bit(i) {
                     if board.wp.get_bit(i) {
-                        let pos_moves = pawn_moves(i, color, board);
+                        let pos_moves = pawn_moves(i, color,  board);
                         for pos in pos_moves {
                             moves.push(pos)
                         }
                     } else if board.wn.get_bit(i) {
-                        let pos_moves = knight_moves(i, color, board, knight_boards);
+                        let pos_moves = knight_moves(i, color,  board, knight_boards);
                         for pos in pos_moves {
                             moves.push(pos)
                         }
@@ -44,11 +44,10 @@ pub fn movegen(board: BitPos, color: u8, knight_boards: [BitBoard; 64]) {
         _ => {}
     }
 
-    println!("Total: {} ms", now.elapsed().as_nanos());
+    println!("Total: {} ns", now.elapsed().as_nanos());
+    println!("Total moves: {}", moves.len());
 
-    for pos_move in moves {
-        pos_move.print();
-    }
+    moves
 }
 
 #[derive(Debug)]
@@ -82,14 +81,12 @@ impl Move {
     }
 }
 
-fn pawn_moves(position: u8, color: u8, mut boards: BitPos) -> Vec<Move> {
+fn pawn_moves(position: u8, color: u8, mut boards: &mut BitPos) -> Vec<Move> {
     //     -16*
     // -9* -8 -7*
     //      X
     //  7*  8   9*
     //      16*
-
-    let now = Instant::now();
 
     let mut pos_moves: Vec<Move> = Vec::new();
     if boards.pinned.get_bit(position) {
@@ -136,13 +133,10 @@ fn pawn_moves(position: u8, color: u8, mut boards: BitPos) -> Vec<Move> {
         _ => {}
     }
 
-    println!("{} ns", now.elapsed().as_nanos());
-
     pos_moves
 }
 
-fn knight_moves(position: u8, color: u8, mut boards: BitPos, knight_boards: [BitBoard; 64]) -> Vec<Move> {
-    let now = Instant::now();
+fn knight_moves(position: u8, color: u8, boards: &mut BitPos, knight_boards: [BitBoard; 64]) -> Vec<Move> {
     let mut pos_moves: Vec<Move> = Vec::new();
 
     if boards.pinned.get_bit(position) {
@@ -176,12 +170,10 @@ fn knight_moves(position: u8, color: u8, mut boards: BitPos, knight_boards: [Bit
         _ => {}
     }
 
-    println!("{} ns", now.elapsed().as_nanos());
-
     pos_moves
 }
 
-fn rook_moves(position: u8, color: u8, mut boards: BitPos) -> Vec<Move> {
+fn rook_moves(position: u8, color: u8, boards: &mut BitPos) -> Vec<Move> {
     let pos_moves: Vec<Move> = Vec::new();
 
     // generate moves

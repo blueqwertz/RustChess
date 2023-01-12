@@ -79,9 +79,13 @@ impl Game {
         }
     }
 
-    pub fn start(&self) {
-        let board = BitPos::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    pub fn start(&self, fen: &str) {
+        let mut board = BitPos::from_fen(fen);
         board.print();
-        movegen(board, Color::White as u8, self.knight_boards);
+        movegen(&mut board, Color::White as u8, self.knight_boards);
+        // for i in 0..30 {
+        //     movegen(board, Color::White as u8, self.knight_boards);
+        // }
+        board.attack_white.print();
     }
 }
