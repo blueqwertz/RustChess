@@ -52,6 +52,26 @@ impl BitBoard {
         (self.0 & (1 << square)) != 0
     }
 
+    pub fn print_index(&self) {
+        println!("Value: {}", &self.0);
+        println!();
+        let mut x = 8;
+        for rank in 0..8 {
+            print!("\x1b[34m{}\x1b[0m  ", x);
+            x -= 1;
+            for file in 0..8 {
+                let square = rank * 8 + file;
+                if self.0 & (1 << square) >= 1 {
+                    print!("\x1b[1m{:02}\x1b[0m ", square);
+                } else {
+                    print!("\x1b[38;5;8m{:02}\x1b[0m ", square);
+                }
+            }
+            println!();
+        }
+        println!("\x1b[34m    a  b  c  d  e  f  g  h\x1b[0m");
+        println!();
+    }
 }
 
 #[derive(Clone, Copy)]

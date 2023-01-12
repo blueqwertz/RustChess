@@ -86,6 +86,6 @@ impl Game {
         // for i in 0..30 {
         //     movegen(board, Color::White as u8, self.knight_boards);
         // }
-        board.attack_white.print();
+        board.attack_white.print_index();
     }
 }
