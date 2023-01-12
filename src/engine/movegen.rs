@@ -1,7 +1,9 @@
+use std::iter::Product;
 use crate::engine::bitboard::{BitBoard, BitPos, Color, Kind, Square};
 use std::time::Instant;
+use crate::engine::game::PrecomputedBitBoards;
 
-pub fn movegen(board: &mut BitPos, color: u8, knight_boards: [BitBoard; 64]) -> Vec<Move> {
+pub fn movegen(board: &mut BitPos, color: u8, precomputed: &PrecomputedBitBoards) -> Vec<Move> {
     let now = Instant::now();
 
     let mut moves = Vec::new();
@@ -16,7 +18,12 @@ pub fn movegen(board: &mut BitPos, color: u8, knight_boards: [BitBoard; 64]) -> 
                             moves.push(pos)
                         }
                     } else if board.wn.get_bit(i) {
-                        let pos_moves = knight_moves(i, color,  board, knight_boards);
+                        let pos_moves = knight_moves(i, color,  board, precomputed.knight_boards);
+                        for pos in pos_moves {
+                            moves.push(pos)
+                        }
+                    } else if board.wr.get_bit(i) {
+                        let pos_moves = rook_moves(i, color,  board, precomputed.rook_boards);
                         for pos in pos_moves {
                             moves.push(pos)
                         }
@@ -33,7 +40,12 @@ pub fn movegen(board: &mut BitPos, color: u8, knight_boards: [BitBoard; 64]) -> 
                             moves.push(pos)
                         }
                     } else if board.bn.get_bit(i) {
-                        let pos_moves = knight_moves(i, color, board, knight_boards);
+                        let pos_moves = knight_moves(i, color, board, precomputed.knight_boards);
+                        for pos in pos_moves {
+                            moves.push(pos)
+                        }
+                    } else if board.br.get_bit(i) {
+                        let pos_moves = rook_moves(i, color,  board, precomputed.rook_boards);
                         for pos in pos_moves {
                             moves.push(pos)
                         }
@@ -77,7 +89,8 @@ impl Move {
         let kind = &self.kind;
         let from = Square::from(*&self.from);
         let to = Square::from(*&self.to);
-        println!("{color:?}, {kind:?}, {from:?} -> {to:?}");
+        // println!("{color:?}, {kind:?}, {from:?} -> {to:?}");
+        println!("{from:?} -> {to:?}");
     }
 }
 
@@ -181,11 +194,22 @@ fn knight_moves(position: u8, color: u8, boards: &mut BitPos, knight_boards: [Bi
     pos_moves
 }
 
-fn rook_moves(position: u8, color: u8, boards: &mut BitPos) -> Vec<Move> {
+fn rook_moves(position: u8, color: u8, boards: &mut BitPos, rook_boards: [BitBoard; 64]) -> Vec<Move> {
     let pos_moves: Vec<Move> = Vec::new();
 
     // generate moves
 
+    // for board in rook_boards {
+    //     board.print();
+    // }
+
+    let mut j: u8 = 0;
+
+    let mut cur_rook_board = rook_boards[position as usize];
+    // cur_rook_board.print();
+    cur_rook_board.0 &= !boards.all.0;
+
+    // cur_rook_board.print();
 
 
     pos_moves

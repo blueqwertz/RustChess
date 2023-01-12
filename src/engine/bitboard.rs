@@ -1,5 +1,6 @@
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Copy, Clone)]
 pub struct BitBoard(pub u64);
+
 
 impl BitBoard {
 
@@ -294,7 +295,7 @@ impl BitPos {
 }
 
 #[rustfmt::skip]
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug)]
 pub enum Square {
     A8, B8, C8, D8, E8, F8, G8, H8,
     A7, B7, C7, D7, E7, F7, G7, H7,
@@ -378,7 +379,7 @@ impl From<u8> for Square {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum Kind {
     King,
     Queen,
@@ -389,7 +390,7 @@ pub enum Kind {
     Undefined,
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum Color {
     White,
     Black,
