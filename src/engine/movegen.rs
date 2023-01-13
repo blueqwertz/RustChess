@@ -112,10 +112,10 @@ fn pawn_moves(position: u8, color: u8, mut boards: &mut BitPos) -> Vec<Move> {
     // generate moves
     match color {
         0 => {
-            if !boards.black.get_bit(position - 8) {
+            if !boards.all.get_bit(position - 8) {
                 pos_moves.push(Move::new(Color::White, Kind::Pawn, position, position - 8));
                 if (48..56).contains(&position) {
-                    if !boards.black.get_bit(position - 16) {
+                    if !boards.all.get_bit(position - 16) {
                         pos_moves.push(Move::new(Color::White, Kind::Pawn, position, position - 16));
                     }
                 }
@@ -134,10 +134,10 @@ fn pawn_moves(position: u8, color: u8, mut boards: &mut BitPos) -> Vec<Move> {
             }
         },
         1 => {
-            if !boards.white.get_bit(position + 8) {
+            if !boards.all.get_bit(position + 8) {
                 pos_moves.push(Move::new(Color::Black, Kind::Pawn, position, position + 8));
                 if (8..16).contains(&position) {
-                    if !boards.white.get_bit(position + 16) {
+                    if !boards.all.get_bit(position + 16) {
                         pos_moves.push(Move::new(Color::Black, Kind::Pawn, position, position + 16));
                     }
                 }

@@ -2,14 +2,16 @@ use std::collections::HashMap;
 use std::path::{Prefix, PrefixComponent};
 use crate::engine::bitboard::{BitBoard, BitPos, Color, Square};
 use crate::engine::movegen::{Move, movegen};
+use rand::Rng;
+use crate::engine::bitboard::Kind::Undefined;
 
 pub struct PrecomputedBitBoards {
     pub rook_boards: [BitBoard; 64],
     pub knight_boards: [BitBoard; 64],
-    pub magic_numbers: [u64; 64]
+    pub magic_numbers: [[u64; 64];2],
 }
 
-fn generate_magic_bitboards() -> [u64; 64] {
+fn generate_magic_bitboards() -> [[u64; 64]; 2] {
 
     const RBits: [u8; 64] = [
         12, 11, 11, 11, 11, 11, 11, 12,
@@ -33,21 +35,122 @@ fn generate_magic_bitboards() -> [u64; 64] {
         6, 5, 5, 5, 5, 5, 5, 6
     ];
 
-    fn find_magic(square: u8, BIT: u8, bishop: bool) {
+    const BitTable: [u64; 64] = [
+        63, 30, 3, 32, 25, 41, 22, 33, 15, 50, 42, 13, 11, 53, 19, 34, 61, 29, 2,
+        51, 21, 43, 45, 10, 18, 47, 1, 54, 9, 57, 0, 35, 62, 31, 40, 4, 49, 5, 52,
+        26, 60, 6, 23, 44, 46, 27, 56, 16, 7, 39, 48, 24, 59, 14, 12, 55, 38, 28,
+        58, 20, 37, 17, 36, 8
+    ];
+
+
+    fn random_u64 () -> u64 {
+        let mut rng = rand::XorShiftRng::new_unseeded();
+        return rng.next_u64();
+    }
+
+    fn random_u64_fewbits () -> u64 {
+        return random_uint64() & random_uint64() & random_uint64();
+    }
+
+    fn pop_1st_bit (bb: &mut u64) -> u64 {
+        let b = *bb ^ (*bb - 1);
+        let fold: u64 = ((b & 0xffffffff) ^ (b >> 32));
+        *bb &= (*bb - 1);
+        return BitTable[(fold * 0x783a9b23) >> 26];
+    }
+
+    fn index_to_uint(i: usize, n: u32, mut mask: u64) -> u64 {
+        let (i, mut j) = (0u64, 0u64);
+        let result = 0u64;
+        while 1 {
+            if i < bits {break}
+            j = pop_1st_bit(&mut mask);
+        }
+        result
+    }
+
+    fn count_1s (b: u64) -> u64 {
+
+    }
+
+    fn transform(b: u8, magic: u64, bits: u64) -> u64 {
+
+    }
+
+    fn rmask(square: u8, block: u64) {
+        let result: u64 = 0u64;
+        let (rk, fl) = (sq / 8, sq % 8);
+        let (r, f) = (0u8, 0u8);
+
+    }
+
+    fn bmask (square: u8, block: u64) {
+        let result: u64 = 0u64;
+        let (rk, fl) = (sq / 8, sq % 8);
+        let (r, f) = (0u8, 0u8);
+    }
+
+    fn ratt (square: u8, block: u64) -> u64 {
+
+    }
+
+    fn batt (square: u8, block: u64) -> u64 {
+
+    }
+
+    fn find_magic(square: u8, BIT: u8, bishop: u8) -> u64 {
         let mask: u64 = 0;
-        let a: [u8; 4096] = [0; 4096];
-        let b: [u8; 4096] = [0; 4096];
+        let mut a: [u64; 4096] = [0; 4096];
+        let mut b: [u64; 4096] = [0; 4096];
+        let mut used: [u64; 4096] = [0; 4096];
+        let mut magic: u64 = 0;
+
+        match bishop {
+            0 => {bmask(sq)},
+            1 => {rmask(sq)},
+            _ => {}
+        }
+
+        let (i, mut j, k, n, fail) = (0u32, 0u64, 0u32, 0u32, 0u8);
+
+
+
+        for i in 0..(1<<n) {
+            b[i] = index_to_uint(i, n, mask);
+            match bishop {
+                0 => {
+                    a[i] = batt(square, b[i]);
+                },
+                1 => {
+                    a[i] = ratt(square, b[i]);
+                },
+                _ => {}
+            }
+        }
+
+        'outer: for k in 0u64..100000000u64 {
+            magic = random_u64_fewbits();
+            if count_1s((mask * magic) & 0xFF00000000000000) < 6 {continue};
+            for i in 0usize..4096usize {
+                used[i] = 0;
+            }
+            let (i, mut fail) = (0u64, 0u64);
+            while 1 {
+                if !fail {
+                    if i < (1 << n) {
+                        break;
+                    }
+                }
+                j = transform(b[i], magic, m);
+                if used[j] == 0 {used[j] = a[i]}
+                else if used[j] != a[i] {fail = 1};
+            }
+            if fail == 0 {return magic}
+        }
+        return 0u64
     }
 
-    fn r_mask() {
-
-    }
-
-    fn bmask () {
-
-    }
-
-    let mut magic_boards: [u64; 64] = [0; 64];
+    let mut magic_boards: [[u64; 64];2] = [[0; 64]; 2];
 
     for field in 0u8..64u8 {
 
@@ -191,7 +294,7 @@ impl PrecomputedBitBoards {
                 BitBoard::from(4485655873561051136),
                 BitBoard::from(9115426935197958144),
             ],
-            magic_numbers: vec![vec![BitBoard::empty()]; 64],
+            magic_numbers: [[0; 64]; 2],
         }
     }
 }
