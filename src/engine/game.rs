@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::path::{Prefix, PrefixComponent};
 use crate::engine::bitboard::{BitBoard, BitPos, Color, Square};
 use crate::engine::movegen::{Move, movegen};
-use rand::Rng;
+use std::rand::Rng;
 use crate::engine::bitboard::Kind::Undefined;
 
 pub struct PrecomputedBitBoards {
@@ -11,7 +11,7 @@ pub struct PrecomputedBitBoards {
     pub magic_numbers: [[u64; 64];2],
 }
 
-fn generate_magic_bitboards() -> [[u64; 64]; 2] {
+fn generate_magic_bitboards(precomputed: PrecomputedBitBoards) -> [[u64; 64]; 2] {
 
     const RBits: [u8; 64] = [
         12, 11, 11, 11, 11, 11, 11, 12,
@@ -74,20 +74,15 @@ fn generate_magic_bitboards() -> [[u64; 64]; 2] {
     }
 
     fn transform(b: u8, magic: u64, bits: u64) -> u64 {
-
+        return ((b * magic) >> (64 - bits)) as u64;
     }
 
-    fn rmask(square: u8, block: u64) {
-        let result: u64 = 0u64;
-        let (rk, fl) = (sq / 8, sq % 8);
-        let (r, f) = (0u8, 0u8);
-
+    fn rmask(square: u8, precomputed: PrecomputedBitBoards) -> u64 {
+        return precomputed.rook_boards[square].0
     }
 
-    fn bmask (square: u8, block: u64) {
-        let result: u64 = 0u64;
-        let (rk, fl) = (sq / 8, sq % 8);
-        let (r, f) = (0u8, 0u8);
+    fn bmask (square: u8, precomputed: PrecomputedBitBoards) -> u64 {
+        return precomputed.rook_boards[square].0
     }
 
     fn ratt (square: u8, block: u64) -> u64 {
