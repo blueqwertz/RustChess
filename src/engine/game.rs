@@ -878,15 +878,16 @@ impl Game {
         //     movegen(&mut board, Color::White as u8, &self.precomputed);
         // }
 
-        // for pos_move in moves {
-        //     pos_move.print();
-        //
-        // }
+        for pos_move in moves {
+            pos_move.print();
+        }
 
         // for i in 0..30 {
         //     movegen(board, Color::White as u8, self.knight_boards);
 
         // }
+
+        board.attack_white.print_index();
 
         board.print();
 
