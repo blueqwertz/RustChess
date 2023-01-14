@@ -19,18 +19,20 @@ pub fn movegen(board: &mut BitPos, color: u8, precomputed: &PrecomputedBitBoards
                         }
                     } else if board.wn.get_bit(i) {
                         let pos_moves = knight_moves(i, color,  board, precomputed.knight_boards);
-                        for pos in pos_moves {
-                            moves.push(pos)
+                        for field in 0u8..64u8 {
+                            if pos_moves.get_bit(field) {
+                                moves.push(Move::new(Color::White, Kind::Knight, i, field))
+                            }
                         }
                     } else if board.wr.get_bit(i) {
-                        let pos_moves = rook_moves(i, color,  board, precomputed.rook_directions);
+                        let pos_moves = sliding_pieces(i, color,  board, precomputed.rook_directions);
                         for field in 0u8..64u8 {
                             if pos_moves.get_bit(field) {
                                 moves.push(Move::new(Color::White, Kind::Rook, i, field))
                             }
                         }
                     } else if board.wb.get_bit(i) {
-                        let pos_moves = rook_moves(i, color,  board, precomputed.bishop_directions);
+                        let pos_moves = sliding_pieces(i, color,  board, precomputed.bishop_directions);
                         for field in 0u8..64u8 {
                             if pos_moves.get_bit(field) {
                                 moves.push(Move::new(Color::White, Kind::Rook, i, field))
@@ -57,18 +59,20 @@ pub fn movegen(board: &mut BitPos, color: u8, precomputed: &PrecomputedBitBoards
                         }
                     } else if board.bn.get_bit(i) {
                         let pos_moves = knight_moves(i, color, board, precomputed.knight_boards);
-                        for pos in pos_moves {
-                            moves.push(pos)
+                        for field in 0u8..64u8 {
+                            if pos_moves.get_bit(field) {
+                                moves.push(Move::new(Color::Black, Kind::Knight, i, field))
+                            }
                         }
                     } else if board.br.get_bit(i) {
-                        let pos_moves = rook_moves(i, color,  board, precomputed.rook_directions);
+                        let pos_moves = sliding_pieces(i, color,  board, precomputed.rook_directions);
                         for field in 0u8..64u8 {
                             if pos_moves.get_bit(field) {
                                 moves.push(Move::new(Color::Black, Kind::Rook, i, field))
                             }
                         }
                     } else if board.bb.get_bit(i) {
-                        let pos_moves = rook_moves(i, color,  board, precomputed.bishop_directions);
+                        let pos_moves = sliding_pieces(i, color,  board, precomputed.bishop_directions);
                         for field in 0u8..64u8 {
                             if pos_moves.get_bit(field) {
                                 moves.push(Move::new(Color::Black, Kind::Rook, i, field))
@@ -89,7 +93,7 @@ pub fn movegen(board: &mut BitPos, color: u8, precomputed: &PrecomputedBitBoards
     }
 
     println!("Total: {} ns", now.elapsed().as_nanos());
-    println!("Total moves: {}", moves.len());
+    // println!("Total moves: {}", moves.len());
 
     moves
 }
@@ -189,11 +193,10 @@ fn pawn_moves(position: u8, color: u8, mut boards: &mut BitPos) -> Vec<Move> {
     pos_moves
 }
 
-fn knight_moves(position: u8, color: u8, boards: &mut BitPos, knight_boards: [BitBoard; 64]) -> Vec<Move> {
-    let mut pos_moves: Vec<Move> = Vec::new();
+fn knight_moves(position: u8, color: u8, boards: &mut BitPos, knight_boards: [BitBoard; 64]) -> BitBoard {
 
     if boards.pinned.get_bit(position) {
-        return pos_moves
+        return BitBoard::empty();
     }
 
     // generate moves
@@ -201,71 +204,18 @@ fn knight_moves(position: u8, color: u8, boards: &mut BitPos, knight_boards: [Bi
 
     match color {
         0 => {
-            for field in 0u8..64u8 {
-                if cur_bit_board.get_bit(field) {
-                    if !boards.white.get_bit(field) {
-                        pos_moves.push(Move::new(Color::White, Kind::Knight, position, field));
-                        boards.attack_white.set_bit(field);
-                    }
-                }
-            }
+            BitBoard::from(cur_bit_board.0 & (!boards.white.0))
         },
         1 => {
-            for field in 0u8..64u8 {
-                if cur_bit_board.get_bit(field) {
-                    if !boards.black.get_bit(field) {
-                        pos_moves.push(Move::new(Color::Black, Kind::Knight, position, field));
-                        boards.attack_black.set_bit(field);
-                    }
-                }
-            }
+            BitBoard::from(cur_bit_board.0 & (!boards.black.0))
         },
-        _ => {}
-    }
-
-    pos_moves
-}
-
-fn rook_moves(position: u8, color: u8, boards: &mut BitPos, rook_rays: [[BitBoard; 4]; 64]) -> BitBoard {
-
-    // generate moves
-
-    // for board in rook_boards {
-    //     board.print();
-    // }
-
-    let mut blockers = boards.all.0;
-
-    let mut rays = rook_rays[position as usize];
-    let mut attack_board = BitBoard::empty();
-
-    for direction in 0..4 {
-        let masked_blockers = BitBoard::from(rays[direction].0 & blockers);
-        for sq in 0u8..64u8 {
-            if masked_blockers.get_bit(sq) {
-                rays[direction].0 &= rays[direction].0 & (!rook_rays[sq as usize][direction].0);
-            }
+        _ => {
+            BitBoard::empty()
         }
-        attack_board.0 |= rays[direction].0;
     }
-
-    match color {
-        0 => {
-            attack_board.0 &= !boards.white.0;
-            boards.attack_white.0 |= attack_board.0;
-        },
-        1 => {
-            attack_board.0 &= !boards.black.0;
-            boards.attack_black.0 |= attack_board.0;
-        },
-        _ => {}
-    }
-
-    attack_board
 }
 
-fn bishop_moves(position: u8, color: u8, boards: &mut BitPos, bishop_rays: [[BitBoard; 4]; 64]) -> BitBoard {
-
+fn sliding_pieces(position: u8, color: u8, boards: &mut BitPos, given_rays: [[BitBoard; 4]; 64]) -> BitBoard {
 
     // generate moves
 
@@ -275,14 +225,14 @@ fn bishop_moves(position: u8, color: u8, boards: &mut BitPos, bishop_rays: [[Bit
 
     let mut blockers = boards.all.0;
 
-    let mut rays = bishop_rays[position as usize];
+    let mut rays = given_rays[position as usize];
     let mut attack_board = BitBoard::empty();
 
     for direction in 0..4 {
         let masked_blockers = BitBoard::from(rays[direction].0 & blockers);
         for sq in 0u8..64u8 {
             if masked_blockers.get_bit(sq) {
-                rays[direction].0 &= rays[direction].0 & (!bishop_rays[sq as usize][direction].0);
+                rays[direction].0 &= rays[direction].0 & (!given_rays[sq as usize][direction].0);
             }
         }
         attack_board.0 |= rays[direction].0;
@@ -304,8 +254,8 @@ fn bishop_moves(position: u8, color: u8, boards: &mut BitPos, bishop_rays: [[Bit
 }
 
 fn queen_moves (position: u8, color: u8, boards: &mut BitPos, rook_rays: [[BitBoard; 4]; 64], bishop_rays: [[BitBoard; 4]; 64]) -> BitBoard {
-    let rook_type_moves: BitBoard = rook_moves(position, color, boards, rook_rays);
-    let bishop_type_moves: BitBoard = bishop_moves(position, color, boards, bishop_rays);
+    let rook_type_moves: BitBoard = sliding_pieces(position, color, boards, rook_rays);
+    let bishop_type_moves: BitBoard = sliding_pieces(position, color, boards, bishop_rays);
 
     BitBoard::from(rook_type_moves.0 | bishop_type_moves.0)
 
