@@ -38,15 +38,15 @@ impl BitBoard {
     }
 
     pub fn set_bit(&mut self, square: u8) {
-        self.0 |= BitBoard::from_sq(square).0;
+        self.0 |= (1 << square);
     }
 
     pub fn unset_bit(&mut self, square: u8) {
-        self.0 != BitBoard::from_sq(square).0;
+        self.0 != (1 << square);
     }
 
     pub fn toggle_bit(&mut self, square: u8) {
-        self.0 ^= BitBoard::from_sq(square).0;
+        self.0 ^= (1 << square);
     }
 
     pub fn get_bit(&self, square: u8) -> bool {

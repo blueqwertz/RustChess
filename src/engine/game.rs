@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::path::{Prefix, PrefixComponent};
 use crate::engine::bitboard::{BitBoard, BitPos, Color, Square};
 use crate::engine::movegen::{Move, movegen};
-use rand::Rng;
 use crate::engine::bitboard::Kind::Undefined;
 
 pub struct PrecomputedBitBoards {
