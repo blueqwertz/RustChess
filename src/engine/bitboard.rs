@@ -82,7 +82,7 @@ pub struct BitPos {
     pub black: BitBoard,
     pub attack_white: BitBoard,
     pub attack_black: BitBoard,
-    pub pinned: BitBoard,
+    pub pinned: [BitBoard; 8],
     pub wp: BitBoard, // white pawns
     pub wn: BitBoard, // white knights
     pub wb: BitBoard, // white bishops
@@ -106,7 +106,7 @@ impl BitPos {
             black: BitBoard::empty(),
             attack_white: BitBoard::empty(),
             attack_black: BitBoard::empty(),
-            pinned: BitBoard::empty(),
+            pinned: [BitBoard::empty(); 8],
             wp: BitBoard::empty(),
             wn: BitBoard::empty(),
             wb: BitBoard::empty(),

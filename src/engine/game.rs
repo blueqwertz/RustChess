@@ -7,7 +7,6 @@ use crate::engine::bitboard::Kind::Undefined;
 pub struct PrecomputedBitBoards {
     pub rook_directions: [[BitBoard; 4]; 64],
     pub bishop_directions: [[BitBoard; 4]; 64],
-
     pub knight_boards: [BitBoard; 64],
 }
 
@@ -858,7 +857,7 @@ impl PrecomputedBitBoards {
 
 pub struct Game {
     side_to_move: Color,
-    precomputed: PrecomputedBitBoards
+    precomputed: PrecomputedBitBoards,
 }
 
 impl Game {
@@ -888,7 +887,6 @@ impl Game {
         //     movegen(board, Color::White as u8, self.knight_boards);
 
         // }
-        board.attack_white.print_index();
 
         board.print();
 

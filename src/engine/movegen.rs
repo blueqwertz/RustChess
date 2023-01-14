@@ -93,7 +93,7 @@ pub fn movegen(board: &mut BitPos, color: u8, precomputed: &PrecomputedBitBoards
     }
 
     println!("Total: {} ns", now.elapsed().as_nanos());
-    // println!("Total moves: {}", moves.len());
+    println!("Total moves: {}", moves.len());
 
     moves
 }
@@ -138,16 +138,17 @@ fn pawn_moves(position: u8, color: u8, mut boards: &mut BitPos) -> Vec<Move> {
     //      16*
 
     let mut pos_moves: Vec<Move> = Vec::new();
-    if boards.pinned.get_bit(position) {
-        return pos_moves
-    }
 
-    let side_pawn_left: bool = Vec::from([0u8, 8u8, 16u8, 24u8, 32u8, 40u8, 48u8, 56u8]).contains(&position);
-    let side_pawn_right: bool = Vec::from([7u8, 15u8, 23u8, 31u8, 39u8, 47u8, 55u8, 63u8]).contains(&position);
 
     // generate moves
     match color {
         0 => {
+            if boards.pinned[0].get_bit(position) {
+                return pos_moves
+            }
+            let side_pawn_left: bool = Vec::from([0u8, 8u8, 16u8, 24u8, 32u8, 40u8, 48u8, 56u8]).contains(&position);
+            let side_pawn_right: bool = Vec::from([7u8, 15u8, 23u8, 31u8, 39u8, 47u8, 55u8, 63u8]).contains(&position);
+
             if !boards.all.get_bit(position - 8) {
                 pos_moves.push(Move::new(Color::White, Kind::Pawn, position, position - 8));
                 if (48..56).contains(&position) {
@@ -170,6 +171,12 @@ fn pawn_moves(position: u8, color: u8, mut boards: &mut BitPos) -> Vec<Move> {
             }
         },
         1 => {
+            if boards.pinned[4].get_bit(position) {
+                return pos_moves
+            }
+            let side_pawn_left: bool = Vec::from([0u8, 8u8, 16u8, 24u8, 32u8, 40u8, 48u8, 56u8]).contains(&position);
+            let side_pawn_right: bool = Vec::from([7u8, 15u8, 23u8, 31u8, 39u8, 47u8, 55u8, 63u8]).contains(&position);
+
             if !boards.all.get_bit(position + 8) {
                 pos_moves.push(Move::new(Color::Black, Kind::Pawn, position, position + 8));
                 if (8..16).contains(&position) {
@@ -232,7 +239,7 @@ fn sliding_pieces(position: u8, color: u8, boards: &mut BitPos, given_rays: [[Bi
 
                 for sq in 0u8..64u8 {
                     if masked_blockers.get_bit(sq) {
-                        rays[direction].0 &= rays[direction].0 & (!given_rays[sq as usize][direction].0);
+                        rays[direction].0 &= rays[direction].0 ^ (given_rays[sq as usize][direction].0);
                     }
                 }
                 attack_board.0 |= rays[direction].0;
