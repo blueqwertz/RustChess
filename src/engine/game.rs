@@ -2,156 +2,14 @@ use std::collections::HashMap;
 use std::path::{Prefix, PrefixComponent};
 use crate::engine::bitboard::{BitBoard, BitPos, Color, Square};
 use crate::engine::movegen::{Move, movegen};
-use std::rand::Rng;
+use rand::Rng;
 use crate::engine::bitboard::Kind::Undefined;
 
 pub struct PrecomputedBitBoards {
-    pub rook_boards: [BitBoard; 64],
+    pub rook_directions: [[BitBoard; 4]; 64],
+    pub bishop_directions: [[BitBoard; 4]; 64],
+
     pub knight_boards: [BitBoard; 64],
-    pub magic_numbers: [[u64; 64];2],
-}
-
-fn generate_magic_bitboards(precomputed: PrecomputedBitBoards) -> [[u64; 64]; 2] {
-
-    const RBits: [u8; 64] = [
-        12, 11, 11, 11, 11, 11, 11, 12,
-        11, 10, 10, 10, 10, 10, 10, 11,
-        11, 10, 10, 10, 10, 10, 10, 11,
-        11, 10, 10, 10, 10, 10, 10, 11,
-        11, 10, 10, 10, 10, 10, 10, 11,
-        11, 10, 10, 10, 10, 10, 10, 11,
-        11, 10, 10, 10, 10, 10, 10, 11,
-        12, 11, 11, 11, 11, 11, 11, 12
-    ];
-
-    const BBits: [u8; 64] = [
-        6, 5, 5, 5, 5, 5, 5, 6,
-        5, 5, 5, 5, 5, 5, 5, 5,
-        5, 5, 7, 7, 7, 7, 5, 5,
-        5, 5, 7, 9, 9, 7, 5, 5,
-        5, 5, 7, 9, 9, 7, 5, 5,
-        5, 5, 7, 7, 7, 7, 5, 5,
-        5, 5, 5, 5, 5, 5, 5, 5,
-        6, 5, 5, 5, 5, 5, 5, 6
-    ];
-
-    const BitTable: [u64; 64] = [
-        63, 30, 3, 32, 25, 41, 22, 33, 15, 50, 42, 13, 11, 53, 19, 34, 61, 29, 2,
-        51, 21, 43, 45, 10, 18, 47, 1, 54, 9, 57, 0, 35, 62, 31, 40, 4, 49, 5, 52,
-        26, 60, 6, 23, 44, 46, 27, 56, 16, 7, 39, 48, 24, 59, 14, 12, 55, 38, 28,
-        58, 20, 37, 17, 36, 8
-    ];
-
-
-    fn random_u64 () -> u64 {
-        let mut rng = rand::XorShiftRng::new_unseeded();
-        return rng.next_u64();
-    }
-
-    fn random_u64_fewbits () -> u64 {
-        return random_uint64() & random_uint64() & random_uint64();
-    }
-
-    fn pop_1st_bit (bb: &mut u64) -> u64 {
-        let b = *bb ^ (*bb - 1);
-        let fold: u64 = ((b & 0xffffffff) ^ (b >> 32));
-        *bb &= (*bb - 1);
-        return BitTable[(fold * 0x783a9b23) >> 26];
-    }
-
-    fn index_to_uint(i: usize, n: u32, mut mask: u64) -> u64 {
-        let (i, mut j) = (0u64, 0u64);
-        let result = 0u64;
-        while 1 {
-            if i < bits {break}
-            j = pop_1st_bit(&mut mask);
-        }
-        result
-    }
-
-    fn count_1s (b: u64) -> u64 {
-
-    }
-
-    fn transform(b: u8, magic: u64, bits: u64) -> u64 {
-        return ((b * magic) >> (64 - bits)) as u64;
-    }
-
-    fn rmask(square: u8, precomputed: PrecomputedBitBoards) -> u64 {
-        return precomputed.rook_boards[square].0
-    }
-
-    fn bmask (square: u8, precomputed: PrecomputedBitBoards) -> u64 {
-        return precomputed.rook_boards[square].0
-    }
-
-    fn ratt (square: u8, block: u64) -> u64 {
-
-    }
-
-    fn batt (square: u8, block: u64) -> u64 {
-
-    }
-
-    fn find_magic(square: u8, BIT: u8, bishop: u8) -> u64 {
-        let mask: u64 = 0;
-        let mut a: [u64; 4096] = [0; 4096];
-        let mut b: [u64; 4096] = [0; 4096];
-        let mut used: [u64; 4096] = [0; 4096];
-        let mut magic: u64 = 0;
-
-        match bishop {
-            0 => {bmask(sq)},
-            1 => {rmask(sq)},
-            _ => {}
-        }
-
-        let (i, mut j, k, n, fail) = (0u32, 0u64, 0u32, 0u32, 0u8);
-
-
-
-        for i in 0..(1<<n) {
-            b[i] = index_to_uint(i, n, mask);
-            match bishop {
-                0 => {
-                    a[i] = batt(square, b[i]);
-                },
-                1 => {
-                    a[i] = ratt(square, b[i]);
-                },
-                _ => {}
-            }
-        }
-
-        'outer: for k in 0u64..100000000u64 {
-            magic = random_u64_fewbits();
-            if count_1s((mask * magic) & 0xFF00000000000000) < 6 {continue};
-            for i in 0usize..4096usize {
-                used[i] = 0;
-            }
-            let (i, mut fail) = (0u64, 0u64);
-            while 1 {
-                if !fail {
-                    if i < (1 << n) {
-                        break;
-                    }
-                }
-                j = transform(b[i], magic, m);
-                if used[j] == 0 {used[j] = a[i]}
-                else if used[j] != a[i] {fail = 1};
-            }
-            if fail == 0 {return magic}
-        }
-        return 0u64
-    }
-
-    let mut magic_boards: [[u64; 64];2] = [[0; 64]; 2];
-
-    for field in 0u8..64u8 {
-
-    }
-
-    return magic_boards
 }
 
 impl PrecomputedBitBoards {
@@ -223,73 +81,778 @@ impl PrecomputedBitBoards {
                 BitBoard::from(4679521487814656),
                 BitBoard::from(9077567998918656),
             ],
-            rook_boards: [
-                BitBoard::from(282578800148862),
-                BitBoard::from(565157600297596),
-                BitBoard::from(1130315200595066),
-                BitBoard::from(2260630401190006),
-                BitBoard::from(4521260802379886),
-                BitBoard::from(9042521604759646),
-                BitBoard::from(18085043209519166),
-                BitBoard::from(36170086419038334),
-                BitBoard::from(282578800180736),
-                BitBoard::from(565157600328704),
-                BitBoard::from(1130315200625152),
-                BitBoard::from(2260630401218048),
-                BitBoard::from(4521260802403840),
-                BitBoard::from(9042521604775424),
-                BitBoard::from(18085043209518592),
-                BitBoard::from(36170086419037696),
-                BitBoard::from(282578808340736),
-                BitBoard::from(565157608292864),
-                BitBoard::from(1130315208328192),
-                BitBoard::from(2260630408398848),
-                BitBoard::from(4521260808540160),
-                BitBoard::from(9042521608822784),
-                BitBoard::from(18085043209388032),
-                BitBoard::from(36170086418907136),
-                BitBoard::from(282580897300736),
-                BitBoard::from(565159647117824),
-                BitBoard::from(1130317180306432),
-                BitBoard::from(2260632246683648),
-                BitBoard::from(4521262379438080),
-                BitBoard::from(9042522644946944),
-                BitBoard::from(18085043175964672),
-                BitBoard::from(36170086385483776),
-                BitBoard::from(283115671060736),
-                BitBoard::from(565681586307584),
-                BitBoard::from(1130822006735872),
-                BitBoard::from(2261102847592448),
-                BitBoard::from(4521664529305600),
-                BitBoard::from(9042787892731904),
-                BitBoard::from(18085034619584512),
-                BitBoard::from(36170077829103616),
-                BitBoard::from(420017753620736),
-                BitBoard::from(699298018886144),
-                BitBoard::from(1260057572672512),
-                BitBoard::from(2381576680245248),
-                BitBoard::from(4624614895390720),
-                BitBoard::from(9110691325681664),
-                BitBoard::from(18082844186263552),
-                BitBoard::from(36167887395782656),
-                BitBoard::from(35466950888980736),
-                BitBoard::from(34905104758997504),
-                BitBoard::from(34344362452452352),
-                BitBoard::from(33222877839362048),
-                BitBoard::from(30979908613181440),
-                BitBoard::from(26493970160820224),
-                BitBoard::from(17522093256097792),
-                BitBoard::from(35607136465616896),
-                BitBoard::from(9079539427579068672),
-                BitBoard::from(8935706818303361536),
-                BitBoard::from(8792156787827803136),
-                BitBoard::from(8505056726876686336),
-                BitBoard::from(7930856604974452736),
-                BitBoard::from(6782456361169985536),
-                BitBoard::from(4485655873561051136),
-                BitBoard::from(9115426935197958144),
+            bishop_directions: [
+                [
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                    BitBoard::from(9241421688590303744),
+                    BitBoard::from(0),
+                ],
+                [
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                    BitBoard::from(36099303471055872),
+                    BitBoard::from(256),
+                ],
+                [
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                    BitBoard::from(141012904183808),
+                    BitBoard::from(66048),
+                ],
+                [
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                    BitBoard::from(550831656960),
+                    BitBoard::from(16909312),
+                ],
+                [
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                    BitBoard::from(2151686144),
+                    BitBoard::from(4328785920),
+                ],
+                [
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                    BitBoard::from(8404992),
+                    BitBoard::from(1108169199616),
+                ],
+                [
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                    BitBoard::from(32768),
+                    BitBoard::from(283691315109888),
+                ],
+                [
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                    BitBoard::from(72624976668147712),
+                ],
+                [
+                    BitBoard::from(0),
+                    BitBoard::from(2),
+                    BitBoard::from(4620710844295151616),
+                    BitBoard::from(0),
+                ],
+                [
+                    BitBoard::from(1),
+                    BitBoard::from(4),
+                    BitBoard::from(9241421688590303232),
+                    BitBoard::from(65536),
+                ],
+                [
+                    BitBoard::from(2),
+                    BitBoard::from(8),
+                    BitBoard::from(36099303471054848),
+                    BitBoard::from(16908288),
+                ],
+                [
+                    BitBoard::from(4),
+                    BitBoard::from(16),
+                    BitBoard::from(141012904181760),
+                    BitBoard::from(4328783872),
+                ],
+                [
+                    BitBoard::from(8),
+                    BitBoard::from(32),
+                    BitBoard::from(550831652864),
+                    BitBoard::from(1108169195520),
+                ],
+                [
+                    BitBoard::from(16),
+                    BitBoard::from(64),
+                    BitBoard::from(2151677952),
+                    BitBoard::from(283691315101696),
+                ],
+                [
+                    BitBoard::from(32),
+                    BitBoard::from(128),
+                    BitBoard::from(8388608),
+                    BitBoard::from(72624976668131328),
+                ],
+                [
+                    BitBoard::from(64),
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                    BitBoard::from(145249953336262656),
+                ],
+                [
+                    BitBoard::from(0),
+                    BitBoard::from(516),
+                    BitBoard::from(2310355422147510272),
+                    BitBoard::from(0),
+                ],
+                [
+                    BitBoard::from(256),
+                    BitBoard::from(1032),
+                    BitBoard::from(4620710844295020544),
+                    BitBoard::from(16777216),
+                ],
+                [
+                    BitBoard::from(513),
+                    BitBoard::from(2064),
+                    BitBoard::from(9241421688590041088),
+                    BitBoard::from(4328521728),
+                ],
+                [
+                    BitBoard::from(1026),
+                    BitBoard::from(4128),
+                    BitBoard::from(36099303470530560),
+                    BitBoard::from(1108168671232),
+                ],
+                [
+                    BitBoard::from(2052),
+                    BitBoard::from(8256),
+                    BitBoard::from(141012903133184),
+                    BitBoard::from(283691314053120),
+                ],
+                [
+                    BitBoard::from(4104),
+                    BitBoard::from(16512),
+                    BitBoard::from(550829555712),
+                    BitBoard::from(72624976666034176),
+                ],
+                [
+                    BitBoard::from(8208),
+                    BitBoard::from(32768),
+                    BitBoard::from(2147483648),
+                    BitBoard::from(145249953332068352),
+                ],
+                [
+                    BitBoard::from(16416),
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                    BitBoard::from(290499906664136704),
+                ],
+                [
+                    BitBoard::from(0),
+                    BitBoard::from(132104),
+                    BitBoard::from(1155177711056977920),
+                    BitBoard::from(0),
+                ],
+                [
+                    BitBoard::from(65536),
+                    BitBoard::from(264208),
+                    BitBoard::from(2310355422113955840),
+                    BitBoard::from(4294967296),
+                ],
+                [
+                    BitBoard::from(131328),
+                    BitBoard::from(528416),
+                    BitBoard::from(4620710844227911680),
+                    BitBoard::from(1108101562368),
+                ],
+                [
+                    BitBoard::from(262657),
+                    BitBoard::from(1056832),
+                    BitBoard::from(9241421688455823360),
+                    BitBoard::from(283691179835392),
+                ],
+                [
+                    BitBoard::from(525314),
+                    BitBoard::from(2113664),
+                    BitBoard::from(36099303202095104),
+                    BitBoard::from(72624976397598720),
+                ],
+                [
+                    BitBoard::from(1050628),
+                    BitBoard::from(4227072),
+                    BitBoard::from(141012366262272),
+                    BitBoard::from(145249952795197440),
+                ],
+                [
+                    BitBoard::from(2101256),
+                    BitBoard::from(8388608),
+                    BitBoard::from(549755813888),
+                    BitBoard::from(290499905590394880),
+                ],
+                [
+                    BitBoard::from(4202512),
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                    BitBoard::from(580999811180789760),
+                ],
+                [
+                    BitBoard::from(0),
+                    BitBoard::from(33818640),
+                    BitBoard::from(577588851233521664),
+                    BitBoard::from(0),
+                ],
+                [
+                    BitBoard::from(16777216),
+                    BitBoard::from(67637280),
+                    BitBoard::from(1155177702467043328),
+                    BitBoard::from(1099511627776),
+                ],
+                [
+                    BitBoard::from(33619968),
+                    BitBoard::from(135274560),
+                    BitBoard::from(2310355404934086656),
+                    BitBoard::from(283673999966208),
+                ],
+                [
+                    BitBoard::from(67240192),
+                    BitBoard::from(270549120),
+                    BitBoard::from(4620710809868173312),
+                    BitBoard::from(72624942037860352),
+                ],
+                [
+                    BitBoard::from(134480385),
+                    BitBoard::from(541097984),
+                    BitBoard::from(9241421619736346624),
+                    BitBoard::from(145249884075720704),
+                ],
+                [
+                    BitBoard::from(268960770),
+                    BitBoard::from(1082130432),
+                    BitBoard::from(36099165763141632),
+                    BitBoard::from(290499768151441408),
+                ],
+                [
+                    BitBoard::from(537921540),
+                    BitBoard::from(2147483648),
+                    BitBoard::from(140737488355328),
+                    BitBoard::from(580999536302882816),
+                ],
+                [
+                    BitBoard::from(1075843080),
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                    BitBoard::from(1161999072605765632),
+                ],
+                [
+                    BitBoard::from(0),
+                    BitBoard::from(8657571872),
+                    BitBoard::from(288793326105133056),
+                    BitBoard::from(0),
+                ],
+                [
+                    BitBoard::from(4294967296),
+                    BitBoard::from(17315143744),
+                    BitBoard::from(577586652210266112),
+                    BitBoard::from(281474976710656),
+                ],
+                [
+                    BitBoard::from(8606711808),
+                    BitBoard::from(34630287488),
+                    BitBoard::from(1155173304420532224),
+                    BitBoard::from(72620543991349248),
+                ],
+                [
+                    BitBoard::from(17213489152),
+                    BitBoard::from(69260574720),
+                    BitBoard::from(2310346608841064448),
+                    BitBoard::from(145241087982698496),
+                ],
+                [
+                    BitBoard::from(34426978560),
+                    BitBoard::from(138521083904),
+                    BitBoard::from(4620693217682128896),
+                    BitBoard::from(290482175965396992),
+                ],
+                [
+                    BitBoard::from(68853957121),
+                    BitBoard::from(277025390592),
+                    BitBoard::from(9241386435364257792),
+                    BitBoard::from(580964351930793984),
+                ],
+                [
+                    BitBoard::from(137707914242),
+                    BitBoard::from(549755813888),
+                    BitBoard::from(36028797018963968),
+                    BitBoard::from(1161928703861587968),
+                ],
+                [
+                    BitBoard::from(275415828484),
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                    BitBoard::from(2323857407723175936),
+                ],
+                [
+                    BitBoard::from(0),
+                    BitBoard::from(2216338399296),
+                    BitBoard::from(144115188075855872),
+                    BitBoard::from(0),
+                ],
+                [
+                    BitBoard::from(1099511627776),
+                    BitBoard::from(4432676798592),
+                    BitBoard::from(288230376151711744),
+                    BitBoard::from(72057594037927936),
+                ],
+                [
+                    BitBoard::from(2203318222848),
+                    BitBoard::from(8865353596928),
+                    BitBoard::from(576460752303423488),
+                    BitBoard::from(144115188075855872),
+                ],
+                [
+                    BitBoard::from(4406653222912),
+                    BitBoard::from(17730707128320),
+                    BitBoard::from(1152921504606846976),
+                    BitBoard::from(288230376151711744),
+                ],
+                [
+                    BitBoard::from(8813306511360),
+                    BitBoard::from(35461397479424),
+                    BitBoard::from(2305843009213693952),
+                    BitBoard::from(576460752303423488),
+                ],
+                [
+                    BitBoard::from(17626613022976),
+                    BitBoard::from(70918499991552),
+                    BitBoard::from(4611686018427387904),
+                    BitBoard::from(1152921504606846976),
+                ],
+                [
+                    BitBoard::from(35253226045953),
+                    BitBoard::from(140737488355328),
+                    BitBoard::from(9223372036854775808),
+                    BitBoard::from(2305843009213693952),
+                ],
+                [
+                    BitBoard::from(70506452091906),
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                    BitBoard::from(4611686018427387904),
+                ],
+                [
+                    BitBoard::from(0),
+                    BitBoard::from(567382630219904),
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                ],
+                [
+                    BitBoard::from(281474976710656),
+                    BitBoard::from(1134765260439552),
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                ],
+                [
+                    BitBoard::from(564049465049088),
+                    BitBoard::from(2269530520813568),
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                ],
+                [
+                    BitBoard::from(1128103225065472),
+                    BitBoard::from(4539061024849920),
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                ],
+                [
+                    BitBoard::from(2256206466908160),
+                    BitBoard::from(9078117754732544),
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                ],
+                [
+                    BitBoard::from(4512412933881856),
+                    BitBoard::from(18155135997837312),
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                ],
+                [
+                    BitBoard::from(9024825867763968),
+                    BitBoard::from(36028797018963968),
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                ],
+                [
+                    BitBoard::from(18049651735527937),
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                ],
             ],
-            magic_numbers: [[0; 64]; 2],
+            rook_directions: [
+                [
+                    BitBoard::from(0),
+                    BitBoard::from(254),
+                    BitBoard::from(72340172838076672),
+                    BitBoard::from(0),
+                ],
+                [
+                    BitBoard::from(0),
+                    BitBoard::from(252),
+                    BitBoard::from(144680345676153344),
+                    BitBoard::from(1),
+                ],
+                [
+                    BitBoard::from(0),
+                    BitBoard::from(248),
+                    BitBoard::from(289360691352306688),
+                    BitBoard::from(3),
+                ],
+                [
+                    BitBoard::from(0),
+                    BitBoard::from(240),
+                    BitBoard::from(578721382704613376),
+                    BitBoard::from(7),
+                ],
+                [
+                    BitBoard::from(0),
+                    BitBoard::from(224),
+                    BitBoard::from(1157442765409226752),
+                    BitBoard::from(15),
+                ],
+                [
+                    BitBoard::from(0),
+                    BitBoard::from(192),
+                    BitBoard::from(2314885530818453504),
+                    BitBoard::from(31),
+                ],
+                [
+                    BitBoard::from(0),
+                    BitBoard::from(128),
+                    BitBoard::from(4629771061636907008),
+                    BitBoard::from(63),
+                ],
+                [
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                    BitBoard::from(9259542123273814016),
+                    BitBoard::from(127),
+                ],
+                [
+                    BitBoard::from(1),
+                    BitBoard::from(65024),
+                    BitBoard::from(72340172838076416),
+                    BitBoard::from(0),
+                ],
+                [
+                    BitBoard::from(2),
+                    BitBoard::from(64512),
+                    BitBoard::from(144680345676152832),
+                    BitBoard::from(256),
+                ],
+                [
+                    BitBoard::from(4),
+                    BitBoard::from(63488),
+                    BitBoard::from(289360691352305664),
+                    BitBoard::from(768),
+                ],
+                [
+                    BitBoard::from(8),
+                    BitBoard::from(61440),
+                    BitBoard::from(578721382704611328),
+                    BitBoard::from(1792),
+                ],
+                [
+                    BitBoard::from(16),
+                    BitBoard::from(57344),
+                    BitBoard::from(1157442765409222656),
+                    BitBoard::from(3840),
+                ],
+                [
+                    BitBoard::from(32),
+                    BitBoard::from(49152),
+                    BitBoard::from(2314885530818445312),
+                    BitBoard::from(7936),
+                ],
+                [
+                    BitBoard::from(64),
+                    BitBoard::from(32768),
+                    BitBoard::from(4629771061636890624),
+                    BitBoard::from(16128),
+                ],
+                [
+                    BitBoard::from(128),
+                    BitBoard::from(0),
+                    BitBoard::from(9259542123273781248),
+                    BitBoard::from(32512),
+                ],
+                [
+                    BitBoard::from(257),
+                    BitBoard::from(16646144),
+                    BitBoard::from(72340172838010880),
+                    BitBoard::from(0),
+                ],
+                [
+                    BitBoard::from(514),
+                    BitBoard::from(16515072),
+                    BitBoard::from(144680345676021760),
+                    BitBoard::from(65536),
+                ],
+                [
+                    BitBoard::from(1028),
+                    BitBoard::from(16252928),
+                    BitBoard::from(289360691352043520),
+                    BitBoard::from(196608),
+                ],
+                [
+                    BitBoard::from(2056),
+                    BitBoard::from(15728640),
+                    BitBoard::from(578721382704087040),
+                    BitBoard::from(458752),
+                ],
+                [
+                    BitBoard::from(4112),
+                    BitBoard::from(14680064),
+                    BitBoard::from(1157442765408174080),
+                    BitBoard::from(983040),
+                ],
+                [
+                    BitBoard::from(8224),
+                    BitBoard::from(12582912),
+                    BitBoard::from(2314885530816348160),
+                    BitBoard::from(2031616),
+                ],
+                [
+                    BitBoard::from(16448),
+                    BitBoard::from(8388608),
+                    BitBoard::from(4629771061632696320),
+                    BitBoard::from(4128768),
+                ],
+                [
+                    BitBoard::from(32896),
+                    BitBoard::from(0),
+                    BitBoard::from(9259542123265392640),
+                    BitBoard::from(8323072),
+                ],
+                [
+                    BitBoard::from(65793),
+                    BitBoard::from(4261412864),
+                    BitBoard::from(72340172821233664),
+                    BitBoard::from(0),
+                ],
+                [
+                    BitBoard::from(131586),
+                    BitBoard::from(4227858432),
+                    BitBoard::from(144680345642467328),
+                    BitBoard::from(16777216),
+                ],
+                [
+                    BitBoard::from(263172),
+                    BitBoard::from(4160749568),
+                    BitBoard::from(289360691284934656),
+                    BitBoard::from(50331648),
+                ],
+                [
+                    BitBoard::from(526344),
+                    BitBoard::from(4026531840),
+                    BitBoard::from(578721382569869312),
+                    BitBoard::from(117440512),
+                ],
+                [
+                    BitBoard::from(1052688),
+                    BitBoard::from(3758096384),
+                    BitBoard::from(1157442765139738624),
+                    BitBoard::from(251658240),
+                ],
+                [
+                    BitBoard::from(2105376),
+                    BitBoard::from(3221225472),
+                    BitBoard::from(2314885530279477248),
+                    BitBoard::from(520093696),
+                ],
+                [
+                    BitBoard::from(4210752),
+                    BitBoard::from(2147483648),
+                    BitBoard::from(4629771060558954496),
+                    BitBoard::from(1056964608),
+                ],
+                [
+                    BitBoard::from(8421504),
+                    BitBoard::from(0),
+                    BitBoard::from(9259542121117908992),
+                    BitBoard::from(2130706432),
+                ],
+                [
+                    BitBoard::from(16843009),
+                    BitBoard::from(1090921693184),
+                    BitBoard::from(72340168526266368),
+                    BitBoard::from(0),
+                ],
+                [
+                    BitBoard::from(33686018),
+                    BitBoard::from(1082331758592),
+                    BitBoard::from(144680337052532736),
+                    BitBoard::from(4294967296),
+                ],
+                [
+                    BitBoard::from(67372036),
+                    BitBoard::from(1065151889408),
+                    BitBoard::from(289360674105065472),
+                    BitBoard::from(12884901888),
+                ],
+                [
+                    BitBoard::from(134744072),
+                    BitBoard::from(1030792151040),
+                    BitBoard::from(578721348210130944),
+                    BitBoard::from(30064771072),
+                ],
+                [
+                    BitBoard::from(269488144),
+                    BitBoard::from(962072674304),
+                    BitBoard::from(1157442696420261888),
+                    BitBoard::from(64424509440),
+                ],
+                [
+                    BitBoard::from(538976288),
+                    BitBoard::from(824633720832),
+                    BitBoard::from(2314885392840523776),
+                    BitBoard::from(133143986176),
+                ],
+                [
+                    BitBoard::from(1077952576),
+                    BitBoard::from(549755813888),
+                    BitBoard::from(4629770785681047552),
+                    BitBoard::from(270582939648),
+                ],
+                [
+                    BitBoard::from(2155905152),
+                    BitBoard::from(0),
+                    BitBoard::from(9259541571362095104),
+                    BitBoard::from(545460846592),
+                ],
+                [
+                    BitBoard::from(4311810305),
+                    BitBoard::from(279275953455104),
+                    BitBoard::from(72339069014638592),
+                    BitBoard::from(0),
+                ],
+                [
+                    BitBoard::from(8623620610),
+                    BitBoard::from(277076930199552),
+                    BitBoard::from(144678138029277184),
+                    BitBoard::from(1099511627776),
+                ],
+                [
+                    BitBoard::from(17247241220),
+                    BitBoard::from(272678883688448),
+                    BitBoard::from(289356276058554368),
+                    BitBoard::from(3298534883328),
+                ],
+                [
+                    BitBoard::from(34494482440),
+                    BitBoard::from(263882790666240),
+                    BitBoard::from(578712552117108736),
+                    BitBoard::from(7696581394432),
+                ],
+                [
+                    BitBoard::from(68988964880),
+                    BitBoard::from(246290604621824),
+                    BitBoard::from(1157425104234217472),
+                    BitBoard::from(16492674416640),
+                ],
+                [
+                    BitBoard::from(137977929760),
+                    BitBoard::from(211106232532992),
+                    BitBoard::from(2314850208468434944),
+                    BitBoard::from(34084860461056),
+                ],
+                [
+                    BitBoard::from(275955859520),
+                    BitBoard::from(140737488355328),
+                    BitBoard::from(4629700416936869888),
+                    BitBoard::from(69269232549888),
+                ],
+                [
+                    BitBoard::from(551911719040),
+                    BitBoard::from(0),
+                    BitBoard::from(9259400833873739776),
+                    BitBoard::from(139637976727552),
+                ],
+                [
+                    BitBoard::from(1103823438081),
+                    BitBoard::from(71494644084506624),
+                    BitBoard::from(72057594037927936),
+                    BitBoard::from(0),
+                ],
+                [
+                    BitBoard::from(2207646876162),
+                    BitBoard::from(70931694131085312),
+                    BitBoard::from(144115188075855872),
+                    BitBoard::from(281474976710656),
+                ],
+                [
+                    BitBoard::from(4415293752324),
+                    BitBoard::from(69805794224242688),
+                    BitBoard::from(288230376151711744),
+                    BitBoard::from(844424930131968),
+                ],
+                [
+                    BitBoard::from(8830587504648),
+                    BitBoard::from(67553994410557440),
+                    BitBoard::from(576460752303423488),
+                    BitBoard::from(1970324836974592),
+                ],
+                [
+                    BitBoard::from(17661175009296),
+                    BitBoard::from(63050394783186944),
+                    BitBoard::from(1152921504606846976),
+                    BitBoard::from(4222124650659840),
+                ],
+                [
+                    BitBoard::from(35322350018592),
+                    BitBoard::from(54043195528445952),
+                    BitBoard::from(2305843009213693952),
+                    BitBoard::from(8725724278030336),
+                ],
+                [
+                    BitBoard::from(70644700037184),
+                    BitBoard::from(36028797018963968),
+                    BitBoard::from(4611686018427387904),
+                    BitBoard::from(17732923532771328),
+                ],
+                [
+                    BitBoard::from(141289400074368),
+                    BitBoard::from(0),
+                    BitBoard::from(9223372036854775808),
+                    BitBoard::from(35747322042253312),
+                ],
+                [
+                    BitBoard::from(282578800148737),
+                    BitBoard::from(18302628885633695744),
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                ],
+                [
+                    BitBoard::from(565157600297474),
+                    BitBoard::from(18158513697557839872),
+                    BitBoard::from(0),
+                    BitBoard::from(72057594037927936),
+                ],
+                [
+                    BitBoard::from(1130315200594948),
+                    BitBoard::from(17870283321406128128),
+                    BitBoard::from(0),
+                    BitBoard::from(216172782113783808),
+                ],
+                [
+                    BitBoard::from(2260630401189896),
+                    BitBoard::from(17293822569102704640),
+                    BitBoard::from(0),
+                    BitBoard::from(504403158265495552),
+                ],
+                [
+                    BitBoard::from(4521260802379792),
+                    BitBoard::from(16140901064495857664),
+                    BitBoard::from(0),
+                    BitBoard::from(1080863910568919040),
+                ],
+                [
+                    BitBoard::from(9042521604759584),
+                    BitBoard::from(13835058055282163712),
+                    BitBoard::from(0),
+                    BitBoard::from(2233785415175766016),
+                ],
+                [
+                    BitBoard::from(18085043209519168),
+                    BitBoard::from(9223372036854775808),
+                    BitBoard::from(0),
+                    BitBoard::from(4539628424389459968),
+                ],
+                [
+                    BitBoard::from(36170086419038336),
+                    BitBoard::from(0),
+                    BitBoard::from(0),
+                    BitBoard::from(9151314442816847872),
+                ],
+            ],
         }
     }
 }
@@ -308,10 +871,8 @@ impl Game {
     }
 
     pub fn start(&mut self, fen: &str) {
-        self.precomputed.magic_numbers = generate_magic_bitboards();
 
         let mut board = BitPos::from_fen(fen);
-        board.print();
 
         let moves: Vec<Move> = movegen(&mut board, Color::White as u8, &self.precomputed);
 
@@ -324,6 +885,9 @@ impl Game {
         //     movegen(board, Color::White as u8, self.knight_boards);
 
         // }
-        board.attack_white.print_index();
+        board.attack_white.print();
+
+        board.print();
+
     }
 }
