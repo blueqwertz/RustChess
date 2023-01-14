@@ -219,31 +219,39 @@ fn sliding_pieces(position: u8, color: u8, boards: &mut BitPos, given_rays: [[Bi
 
     // generate moves
 
-    // for board in rook_boards {
-    //     board.print();
-    // }
-
     let mut blockers = boards.all.0;
 
     let mut rays = given_rays[position as usize];
     let mut attack_board = BitBoard::empty();
 
-    for direction in 0..4 {
-        let masked_blockers = BitBoard::from(rays[direction].0 & blockers);
-        for sq in 0u8..64u8 {
-            if masked_blockers.get_bit(sq) {
-                rays[direction].0 &= rays[direction].0 & (!given_rays[sq as usize][direction].0);
-            }
-        }
-        attack_board.0 |= rays[direction].0;
-    }
 
     match color {
         0 => {
+            for direction in 0..4 {
+                let masked_blockers = BitBoard::from(rays[direction].0 & blockers);
+
+                for sq in 0u8..64u8 {
+                    if masked_blockers.get_bit(sq) {
+                        rays[direction].0 &= rays[direction].0 & (!given_rays[sq as usize][direction].0);
+                    }
+                }
+                attack_board.0 |= rays[direction].0;
+            }
+
             attack_board.0 &= !boards.white.0;
             boards.attack_white.0 |= attack_board.0;
         },
         1 => {
+            for direction in 0..4 {
+                let masked_blockers = BitBoard::from(rays[direction].0 & blockers);
+
+                for sq in 0u8..64u8 {
+                    if masked_blockers.get_bit(sq) {
+                        rays[direction].0 &= rays[direction].0 & (!given_rays[sq as usize][direction].0);
+                    }
+                }
+                attack_board.0 |= rays[direction].0;
+            }
             attack_board.0 &= !boards.black.0;
             boards.attack_black.0 |= attack_board.0;
         },
