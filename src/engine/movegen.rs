@@ -271,6 +271,7 @@ fn rook_moves (position: u8, color: u8, boards: &mut BitPos, given_rays: [[BitBo
                             6 => 2,
                             _ => direction,
                         };
+                        println!("{}", index);
                         boards.pinned[index].set_bit(blockers_no_king.trailing_zeros() as u8);
                     }
                 }
