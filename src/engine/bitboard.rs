@@ -192,6 +192,32 @@ impl BitPos {
         }
     }
 
+    pub fn get_piece_type_at (&self, position: u8) -> Kind {
+        if !self.all.get_bit(position) {
+            return Kind::Undefined
+        }
+
+        if self.white.get_bit(position) {
+            if self.wp.get_bit(position) {return Kind::Pawn}
+            if self.wn.get_bit(position) {return Kind::Knight}
+            if self.wb.get_bit(position) {return Kind::Bishop}
+            if self.wr.get_bit(position) {return Kind::Rook}
+            if self.wq.get_bit(position) {return Kind::Queen}
+            if self.wk.get_bit(position) {return Kind::King}
+        }
+
+        if self.black.get_bit(position) {
+            if self.bp.get_bit(position) {return Kind::Pawn}
+            if self.bn.get_bit(position) {return Kind::Knight}
+            if self.bb.get_bit(position) {return Kind::Bishop}
+            if self.br.get_bit(position) {return Kind::Rook}
+            if self.bq.get_bit(position) {return Kind::Queen}
+            if self.bk.get_bit(position) {return Kind::King}
+        }
+
+        Kind::Undefined
+    }
+
     pub fn print(&self) {
         let mut board: Vec<char> = Vec::new();
         println!("Value: {}", &self.all.0);

@@ -1,6 +1,7 @@
 use std::iter::Product;
 use crate::engine::bitboard::{BitBoard, BitPos, Color, Kind, Square};
 use std::time::Instant;
+use crate::engine::bitboard::Kind::Undefined;
 use crate::engine::game::PrecomputedBitBoards;
 
 pub fn movegen(board: &mut BitPos, color: u8, precomputed: &PrecomputedBitBoards) -> Vec<Move> {
@@ -18,11 +19,17 @@ pub fn movegen(board: &mut BitPos, color: u8, precomputed: &PrecomputedBitBoards
                             moves.push(pos)
                         }
                     }
+                        // add trailing zeros
                     else if board.wn.get_bit(i) {
                         let pos_moves = knight_moves(i, color,  board, precomputed.knight_boards);
                         for field in 0u8..64u8 {
                             if pos_moves.get_bit(field) {
-                                moves.push(Move::new(Color::White, Kind::Knight, i, field))
+                                let (mut captured, mut capture, mut en_passant, mut en_passant_capture, mut promotion, mut promotion_to) = (Kind::Undefined, false, 0, 0, false, Kind::Undefined);
+                                if board.black.get_bit(field) {
+                                    capture = true;
+                                    captured = board.get_piece_type_at(field);
+                                }
+                                moves.push(Move::new(Color::White, Kind::Knight, i, field, captured, capture, en_passant, en_passant_capture, promotion, promotion_to));
                             }
                         }
                     }
@@ -30,7 +37,12 @@ pub fn movegen(board: &mut BitPos, color: u8, precomputed: &PrecomputedBitBoards
                         let pos_moves = rook_moves(i, color,  board, precomputed.rook_directions, precomputed.king_dir_mask);
                         for field in 0u8..64u8 {
                             if pos_moves.get_bit(field) {
-                                moves.push(Move::new(Color::White, Kind::Rook, i, field))
+                                let (mut captured, mut capture, mut en_passant, mut en_passant_capture, mut promotion, mut promotion_to) = (Kind::Undefined, false, 0, 0, false, Kind::Undefined);
+                                if board.black.get_bit(field) {
+                                    capture = true;
+                                    captured = board.get_piece_type_at(field);
+                                }
+                                moves.push(Move::new(Color::White, Kind::Rook, i, field, captured, capture, en_passant, en_passant_capture, promotion, promotion_to));
                             }
                         }
                     }
@@ -38,7 +50,12 @@ pub fn movegen(board: &mut BitPos, color: u8, precomputed: &PrecomputedBitBoards
                         let pos_moves = bishop_moves(i, color,  board, precomputed.bishop_directions);
                         for field in 0u8..64u8 {
                             if pos_moves.get_bit(field) {
-                                moves.push(Move::new(Color::White, Kind::Rook, i, field))
+                                let (mut captured, mut capture, mut en_passant, mut en_passant_capture, mut promotion, mut promotion_to) = (Kind::Undefined, false, 0, 0, false, Kind::Undefined);
+                                if board.black.get_bit(field) {
+                                    capture = true;
+                                    captured = board.get_piece_type_at(field);
+                                }
+                                moves.push(Move::new(Color::White, Kind::Rook, i, field, captured, capture, en_passant, en_passant_capture, promotion, promotion_to));
                             }
                         }
                     }
@@ -46,7 +63,12 @@ pub fn movegen(board: &mut BitPos, color: u8, precomputed: &PrecomputedBitBoards
                         let pos_moves = queen_moves(i, color,  board, precomputed.rook_directions,precomputed.bishop_directions, precomputed.king_dir_mask);
                         for field in 0u8..64u8 {
                             if pos_moves.get_bit(field) {
-                                moves.push(Move::new(Color::White, Kind::Rook, i, field))
+                                let (mut captured, mut capture, mut en_passant, mut en_passant_capture, mut promotion, mut promotion_to) = (Kind::Undefined, false, 0, 0, false, Kind::Undefined);
+                                if board.black.get_bit(field) {
+                                    capture = true;
+                                    captured = board.get_piece_type_at(field);
+                                }
+                                moves.push(Move::new(Color::White, Kind::Queen, i, field, captured, capture, en_passant, en_passant_capture, promotion, promotion_to));
                             }
                         }
                     }
@@ -66,7 +88,12 @@ pub fn movegen(board: &mut BitPos, color: u8, precomputed: &PrecomputedBitBoards
                         let pos_moves = knight_moves(i, color, board, precomputed.knight_boards);
                         for field in 0u8..64u8 {
                             if pos_moves.get_bit(field) {
-                                moves.push(Move::new(Color::Black, Kind::Knight, i, field))
+                                let (mut captured, mut capture, mut en_passant, mut en_passant_capture, mut promotion, mut promotion_to) = (Kind::Undefined, false, 0, 0, false, Kind::Undefined);
+                                if board.white.get_bit(field) {
+                                    capture = true;
+                                    captured = board.get_piece_type_at(field);
+                                }
+                                moves.push(Move::new(Color::Black, Kind::Knight, i, field, captured, capture, en_passant, en_passant_capture, promotion, promotion_to));
                             }
                         }
                     }
@@ -74,7 +101,12 @@ pub fn movegen(board: &mut BitPos, color: u8, precomputed: &PrecomputedBitBoards
                         let pos_moves = rook_moves(i, color,  board, precomputed.rook_directions, precomputed.king_dir_mask);
                         for field in 0u8..64u8 {
                             if pos_moves.get_bit(field) {
-                                moves.push(Move::new(Color::Black, Kind::Rook, i, field))
+                                let (mut captured, mut capture, mut en_passant, mut en_passant_capture, mut promotion, mut promotion_to) = (Kind::Undefined, false, 0, 0, false, Kind::Undefined);
+                                if board.white.get_bit(field) {
+                                    capture = true;
+                                    captured = board.get_piece_type_at(field);
+                                }
+                                moves.push(Move::new(Color::Black, Kind::Rook, i, field, captured, capture, en_passant, en_passant_capture, promotion, promotion_to));
                             }
                         }
                     }
@@ -82,7 +114,12 @@ pub fn movegen(board: &mut BitPos, color: u8, precomputed: &PrecomputedBitBoards
                         let pos_moves = bishop_moves(i, color,  board, precomputed.bishop_directions);
                         for field in 0u8..64u8 {
                             if pos_moves.get_bit(field) {
-                                moves.push(Move::new(Color::Black, Kind::Rook, i, field))
+                                let (mut captured, mut capture, mut en_passant, mut en_passant_capture, mut promotion, mut promotion_to) = (Kind::Undefined, false, 0, 0, false, Kind::Undefined);
+                                if board.white.get_bit(field) {
+                                    capture = true;
+                                    captured = board.get_piece_type_at(field);
+                                }
+                                moves.push(Move::new(Color::Black, Kind::Bishop, i, field, captured, capture, en_passant, en_passant_capture, promotion, promotion_to));
                             }
                         }
                     }
@@ -90,7 +127,12 @@ pub fn movegen(board: &mut BitPos, color: u8, precomputed: &PrecomputedBitBoards
                         let pos_moves = queen_moves(i, color,  board, precomputed.rook_directions,precomputed.bishop_directions, precomputed.king_dir_mask);
                         for field in 0u8..64u8 {
                             if pos_moves.get_bit(field) {
-                                moves.push(Move::new(Color::Black, Kind::Rook, i, field))
+                                let (mut captured, mut capture, mut en_passant, mut en_passant_capture, mut promotion, mut promotion_to) = (Kind::Undefined, false, 0, 0, false, Kind::Undefined);
+                                if board.white.get_bit(field) {
+                                    capture = true;
+                                    captured = board.get_piece_type_at(field);
+                                }
+                                moves.push(Move::new(Color::Black, Kind::Queen, i, field, captured, capture, en_passant, en_passant_capture, promotion, promotion_to));
                             }
                         }
                     }
@@ -114,18 +156,18 @@ pub struct Move{
     from: u8,
     to: u8,
 
-    // captured: Kind,
-    // capture: bool,
-    // en_passant: u8,
-    // en_passant_capture: u8,
-    //
-    // promotion: bool,
-    // promotion_to: Kind,
+    captured: Kind,
+    capture: bool,
+    en_passant: u8,
+    en_passant_capture: u8,
+
+    promotion: bool,
+    promotion_to: Kind,
 }
 
 impl Move {
-    pub fn new(color: Color, kind: Kind, from: u8, to: u8) -> Self {
-        Self{color, kind, from, to}
+    pub fn new(color: Color, kind: Kind, from: u8, to: u8, captured: Kind, capture: bool, en_passant: u8, en_passant_capture: u8, promotion: bool, promotion_to: Kind) -> Self {
+        Self{color, kind, from, to, captured, capture, en_passant, en_passant_capture, promotion, promotion_to}
     }
 
     pub fn print(&self) {
@@ -153,10 +195,12 @@ fn pawn_moves(position: u8, color: u8, mut boards: &mut BitPos) -> Vec<Move> {
         0 => {
             if !boards.pinned[0].get_bit(position) {
                 if !boards.all.get_bit(position - 8) {
-                    pos_moves.push(Move::new(Color::White, Kind::Pawn, position, position - 8));
+                    let (mut captured, mut capture, mut en_passant, mut en_passant_capture, mut promotion, mut promotion_to) = (Kind::Undefined, false, 0, 0, false, Kind::Undefined);
+                    pos_moves.push(Move::new(Color::White, Kind::Pawn, position, position - 8, captured, capture, en_passant, en_passant_capture, promotion, promotion_to));
                     if (48..56).contains(&position) {
                         if !boards.all.get_bit(position - 16) {
-                            pos_moves.push(Move::new(Color::White, Kind::Pawn, position, position - 16));
+                            let (mut captured, mut capture, mut en_passant, mut en_passant_capture, mut promotion, mut promotion_to) = (Kind::Undefined, false, 0, 0, false, Kind::Undefined);
+                            pos_moves.push(Move::new(Color::White, Kind::Pawn, position, position - 16, captured, capture, en_passant, en_passant_capture, promotion, promotion_to));
                         }
                     }
                 }

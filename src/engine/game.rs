@@ -16,6 +16,7 @@ pub struct PrecomputedBitBoards {
 impl PrecomputedBitBoards {
     fn new() -> Self {
         Self {
+            // very unsexy but lazy
             knight_boards: [
                 BitBoard::from(132096),
                 BitBoard::from(329728),
@@ -1279,7 +1280,6 @@ impl Game {
         // }
 
         board.attack_white.print_index();
-        board.pinned[3].print();
         board.print();
 
     }
