@@ -887,8 +887,7 @@ impl Game {
 
         // }
 
-        board.attack_white.print_index();
-
+        // board.attack_white.print_index();
         board.print();
 
     }

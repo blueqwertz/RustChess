@@ -260,6 +260,20 @@ fn rook_moves (position: u8, color: u8, boards: &mut BitPos, given_rays: [[BitBo
                     attack_board.0 |= rays[direction].0;
                     continue
                 }
+                if masked_blockers.0 & boards.bk.0 != 0u64 {
+                    // king in attack line
+                    let blockers_no_king = masked_blockers.0 & (!boards.bk.0);
+                    if blockers_no_king.count_ones() == 1 {
+                        let index: usize = match direction {
+                            0 => 4,
+                            2 => 6,
+                            4 => 0,
+                            6 => 2,
+                            _ => direction,
+                        };
+                        boards.pinned[index].set_bit(blockers_no_king.trailing_zeros() as u8);
+                    }
+                }
                 for sq in (masked_blockers.0.trailing_zeros() as u8)..(64 - masked_blockers.0.leading_zeros() as u8) {
                     if masked_blockers.get_bit(sq) {
                         rays[direction].0 &= rays[direction].0 ^ (given_rays[sq as usize][direction].0);
@@ -280,6 +294,20 @@ fn rook_moves (position: u8, color: u8, boards: &mut BitPos, given_rays: [[BitBo
                 if masked_blockers.0 == 0u64 {
                     attack_board.0 |= rays[direction].0;
                     continue
+                }
+                if masked_blockers.0 & boards.bk.0 != 0u64 {
+                    // king in attack line
+                    let blockers_no_king = masked_blockers.0 & (!boards.wk.0);
+                    if blockers_no_king.count_ones() == 1 {
+                        let index: usize = match direction {
+                            0 => 4,
+                            2 => 6,
+                            4 => 0,
+                            6 => 2,
+                            _ => direction,
+                        };
+                        boards.pinned[index].set_bit(blockers_no_king.trailing_zeros() as u8);
+                    }
                 }
                 for sq in (masked_blockers.0.trailing_zeros() as u8)..(64 - masked_blockers.0.leading_zeros() as u8) {
                     if masked_blockers.get_bit(sq) {
@@ -318,6 +346,20 @@ fn bishop_moves (position: u8, color: u8, boards: &mut BitPos, given_rays: [[Bit
                     attack_board.0 |= rays[direction].0;
                     continue
                 }
+                if masked_blockers.0 & boards.bk.0 != 0u64 {
+                    // king in attack line
+                    let blockers_no_king = masked_blockers.0 & (!boards.bk.0);
+                    if blockers_no_king.count_ones() == 1 {
+                        let index: usize = match direction {
+                            1 => 5,
+                            3 => 7,
+                            5 => 1,
+                            7 => 3,
+                            _ => direction,
+                        };
+                        boards.pinned[index].set_bit(blockers_no_king.trailing_zeros() as u8);
+                    }
+                }
                 for sq in (masked_blockers.0.trailing_zeros() as u8)..(64 - masked_blockers.0.leading_zeros() as u8) {
                     if masked_blockers.get_bit(sq) {
                         rays[direction].0 &= rays[direction].0 ^ (given_rays[sq as usize][direction].0);
@@ -338,6 +380,20 @@ fn bishop_moves (position: u8, color: u8, boards: &mut BitPos, given_rays: [[Bit
                 if masked_blockers.0 == 0u64 {
                     attack_board.0 |= rays[direction].0;
                     continue
+                }
+                if masked_blockers.0 & boards.bk.0 != 0u64 {
+                    // king in attack line
+                    let blockers_no_king = masked_blockers.0 & (!boards.wk.0);
+                    if blockers_no_king.count_ones() == 1 {
+                        let index: usize = match direction {
+                            1 => 5,
+                            3 => 7,
+                            5 => 1,
+                            7 => 3,
+                            _ => direction,
+                        };
+                        boards.pinned[index].set_bit(blockers_no_king.trailing_zeros() as u8);
+                    }
                 }
                 for sq in (masked_blockers.0.trailing_zeros() as u8)..(64 - masked_blockers.0.leading_zeros() as u8) {
                     if masked_blockers.get_bit(sq) {
