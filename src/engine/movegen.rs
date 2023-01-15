@@ -27,7 +27,7 @@ pub fn movegen(board: &mut BitPos, color: u8, precomputed: &PrecomputedBitBoards
                         }
                     }
                     else if board.wr.get_bit(i) {
-                        let pos_moves = rook_moves(i, color,  board, precomputed.rook_directions);
+                        let pos_moves = rook_moves(i, color,  board, precomputed.rook_directions, precomputed.king_dir_mask);
                         for field in 0u8..64u8 {
                             if pos_moves.get_bit(field) {
                                 moves.push(Move::new(Color::White, Kind::Rook, i, field))
@@ -43,7 +43,7 @@ pub fn movegen(board: &mut BitPos, color: u8, precomputed: &PrecomputedBitBoards
                         }
                     }
                     else if board.wq.get_bit(i) {
-                        let pos_moves = queen_moves(i, color,  board, precomputed.rook_directions,precomputed.bishop_directions);
+                        let pos_moves = queen_moves(i, color,  board, precomputed.rook_directions,precomputed.bishop_directions, precomputed.king_dir_mask);
                         for field in 0u8..64u8 {
                             if pos_moves.get_bit(field) {
                                 moves.push(Move::new(Color::White, Kind::Rook, i, field))
@@ -71,7 +71,7 @@ pub fn movegen(board: &mut BitPos, color: u8, precomputed: &PrecomputedBitBoards
                         }
                     }
                     else if board.br.get_bit(i) {
-                        let pos_moves = rook_moves(i, color,  board, precomputed.rook_directions);
+                        let pos_moves = rook_moves(i, color,  board, precomputed.rook_directions, precomputed.king_dir_mask);
                         for field in 0u8..64u8 {
                             if pos_moves.get_bit(field) {
                                 moves.push(Move::new(Color::Black, Kind::Rook, i, field))
@@ -87,7 +87,7 @@ pub fn movegen(board: &mut BitPos, color: u8, precomputed: &PrecomputedBitBoards
                         }
                     }
                     else if board.bq.get_bit(i) {
-                        let pos_moves = queen_moves(i, color,  board, precomputed.rook_directions,precomputed.bishop_directions);
+                        let pos_moves = queen_moves(i, color,  board, precomputed.rook_directions,precomputed.bishop_directions, precomputed.king_dir_mask);
                         for field in 0u8..64u8 {
                             if pos_moves.get_bit(field) {
                                 moves.push(Move::new(Color::Black, Kind::Rook, i, field))
@@ -240,7 +240,7 @@ fn knight_moves(position: u8, color: u8, boards: &mut BitPos, knight_boards: [Bi
     }
 }
 
-fn rook_moves (position: u8, color: u8, boards: &mut BitPos, given_rays: [[BitBoard; 4]; 64]) -> BitBoard {
+fn rook_moves (position: u8, color: u8, boards: &mut BitPos, given_rays: [[BitBoard; 4]; 64], king_masks: [[[BitBoard; 64]; 4]; 64]) -> BitBoard {
 
     // generate moves
 
@@ -262,7 +262,9 @@ fn rook_moves (position: u8, color: u8, boards: &mut BitPos, given_rays: [[BitBo
                 }
                 if masked_blockers.0 & boards.bk.0 != 0u64 {
                     // king in attack line
-                    let blockers_no_king = masked_blockers.0 & (!boards.bk.0);
+                    let mut blockers_no_king = masked_blockers.0 & (!boards.bk.0);
+                    println!("{}", boards.bk.0.trailing_zeros());
+                    blockers_no_king &= king_masks[position as usize][direction][boards.bk.0.trailing_zeros() as usize].0;
                     if blockers_no_king.count_ones() == 1 {
                         let index: usize = match direction {
                             0 => 4,
@@ -299,6 +301,7 @@ fn rook_moves (position: u8, color: u8, boards: &mut BitPos, given_rays: [[BitBo
                 if masked_blockers.0 & boards.bk.0 != 0u64 {
                     // king in attack line
                     let blockers_no_king = masked_blockers.0 & (!boards.wk.0);
+
                     if blockers_no_king.count_ones() == 1 {
                         let index: usize = match direction {
                             0 => 4,
@@ -412,8 +415,8 @@ fn bishop_moves (position: u8, color: u8, boards: &mut BitPos, given_rays: [[Bit
     attack_board
 }
 
-fn queen_moves (position: u8, color: u8, boards: &mut BitPos, rook_rays: [[BitBoard; 4]; 64], bishop_rays: [[BitBoard; 4]; 64]) -> BitBoard {
-    let rook_type_moves: BitBoard = rook_moves(position, color, boards, rook_rays);
+fn queen_moves (position: u8, color: u8, boards: &mut BitPos, rook_rays: [[BitBoard; 4]; 64], bishop_rays: [[BitBoard; 4]; 64], king_masks: [[[BitBoard; 64]; 4]; 64]) -> BitBoard {
+    let rook_type_moves: BitBoard = rook_moves(position, color, boards, rook_rays, king_masks);
     let bishop_type_moves: BitBoard = bishop_moves(position, color, boards, bishop_rays);
 
     BitBoard::from(rook_type_moves.0 | bishop_type_moves.0)
