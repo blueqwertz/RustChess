@@ -1246,6 +1246,7 @@ impl PrecomputedBitBoards {
 }
 
 pub struct Game {
+    pub board: BitPos,
     side_to_move: Color,
     precomputed: PrecomputedBitBoards,
 }
@@ -1253,30 +1254,34 @@ pub struct Game {
 impl Game {
     pub fn new() -> Self {
         Self {
+            board: BitPos::empty(),
             side_to_move: Color::White,
             precomputed: PrecomputedBitBoards::new(),
         }
     }
 
-    pub fn start(&mut self, fen: &str) {
+    pub fn from_fen(fen: &str) -> Self {
+        Self {
+            board: BitPos::from_fen(fen),
+            side_to_move: Color::White,
+            precomputed: PrecomputedBitBoards::new(),
+        }
+    }
 
-        let mut board = BitPos::from_fen(fen);
-
-        let moves: Vec<Move> = movegen(&mut board, Color::White as u8, &self.precomputed);
-        let before = board.all.0;
-        board.print();
+    pub fn start(&mut self) {
+        let moves: Vec<Move> = movegen(&mut self.board, Color::White as u8, &self.precomputed);
+        let before = &self.board.all.0;
+        &self.board.print();
         // for _ in 0..20 {
         //     movegen(&mut board, Color::White as u8, &self.precomputed);
         // }
 
         // self.precomputed.king_dir_mask[0][1][7].print();
-
         for pos_move in moves {
-            board.make_move(pos_move);
-            board.unmake_move(pos_move);
+            &self.board.make_move(pos_move);
+            &self.board.unmake_move(pos_move);
         }
-
-        board.print();
+        &self.board.print();
         // for i in 0..30 {
         //     movegen(board, Color::White as u8, self.knight_boards);
 

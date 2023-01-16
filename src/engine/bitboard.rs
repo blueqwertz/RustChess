@@ -84,19 +84,20 @@ pub struct BitPos {
     pub black: BitBoard,
     pub attack_white: BitBoard,
     pub attack_black: BitBoard,
-    pub pinned: [BitBoard; 8],
-    pub wp: BitBoard, // white pawns
-    pub wn: BitBoard, // white knights
-    pub wb: BitBoard, // white bishops
-    pub wr: BitBoard, // white rooks
-    pub wq: BitBoard, // white queen
-    pub wk: BitBoard, // white king
-    pub bp: BitBoard, // black pawns
-    pub bn: BitBoard, // black knights
-    pub bb: BitBoard, // black bishops
-    pub br: BitBoard, // black rooks
-    pub bq: BitBoard, // black queen
-    pub bk: BitBoard, // black king
+    pub pinned_black: [BitBoard; 8],
+    pub pinned_white: [BitBoard; 8],
+    pub wp: BitBoard,
+    pub wn: BitBoard,
+    pub wb: BitBoard,
+    pub wr: BitBoard,
+    pub wq: BitBoard,
+    pub wk: BitBoard,
+    pub bp: BitBoard,
+    pub bn: BitBoard,
+    pub bb: BitBoard,
+    pub br: BitBoard,
+    pub bq: BitBoard,
+    pub bk: BitBoard,
 }
 
 impl BitPos {
@@ -108,7 +109,8 @@ impl BitPos {
             black: BitBoard::empty(),
             attack_white: BitBoard::empty(),
             attack_black: BitBoard::empty(),
-            pinned: [BitBoard::empty(); 8],
+            pinned_white: [BitBoard::empty(); 8],
+            pinned_black: [BitBoard::empty(); 8],
             wp: BitBoard::empty(),
             wn: BitBoard::empty(),
             wb: BitBoard::empty(),
