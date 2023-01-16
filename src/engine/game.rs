@@ -1263,25 +1263,23 @@ impl Game {
         let mut board = BitPos::from_fen(fen);
 
         let moves: Vec<Move> = movegen(&mut board, Color::White as u8, &self.precomputed);
+        let before = board.all.0;
         board.print();
-
-        board.make_move(moves[0]);
         // for _ in 0..20 {
         //     movegen(&mut board, Color::White as u8, &self.precomputed);
         // }
 
         // self.precomputed.king_dir_mask[0][1][7].print();
 
-        // for pos_move in moves {
-        //     pos_move.print();
-        // }
+        for pos_move in moves {
+            board.make_move(pos_move);
+            board.unmake_move(pos_move);
+        }
 
+        board.print();
         // for i in 0..30 {
         //     movegen(board, Color::White as u8, self.knight_boards);
 
         // }
-
-        board.print();
-
     }
 }

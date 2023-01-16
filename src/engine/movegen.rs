@@ -180,7 +180,7 @@ impl Move {
         let capture = &self.capture;
         let captured = &self.captured;
         // println!("{color:?}, {kind:?}, {from:?} -> {to:?}");
-        println!("{from:?}{to:?}: {color:?}, {kind:?}, {capture:?}, {captured:?}");
+        println!("{from:?}{to:?}: {color:?}, {kind:?}, Capture: {capture:?}, {captured:?}");
     }
 }
 
