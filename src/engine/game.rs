@@ -1263,7 +1263,9 @@ impl Game {
         let mut board = BitPos::from_fen(fen);
 
         let moves: Vec<Move> = movegen(&mut board, Color::White as u8, &self.precomputed);
-
+        board.print();
+        moves[0].print();
+        board.bit_move(moves[0]);
         // for _ in 0..20 {
         //     movegen(&mut board, Color::White as u8, &self.precomputed);
         // }
@@ -1279,7 +1281,6 @@ impl Game {
 
         // }
 
-        board.attack_white.print_index();
         board.print();
 
     }

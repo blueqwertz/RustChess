@@ -150,7 +150,7 @@ pub fn movegen(board: &mut BitPos, color: u8, precomputed: &PrecomputedBitBoards
     moves
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Move{
     pub color: Color,
     pub kind: Kind,
