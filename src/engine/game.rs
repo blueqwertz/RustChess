@@ -1264,8 +1264,8 @@ impl Game {
 
         let moves: Vec<Move> = movegen(&mut board, Color::White as u8, &self.precomputed);
         board.print();
-        moves[0].print();
-        board.bit_move(moves[0]);
+
+        board.make_move(moves[0]);
         // for _ in 0..20 {
         //     movegen(&mut board, Color::White as u8, &self.precomputed);
         // }

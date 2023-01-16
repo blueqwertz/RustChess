@@ -44,7 +44,7 @@ impl BitBoard {
     }
 
     pub fn unset_bit(&mut self, square: u8) {
-        self.0 != (1 << square);
+        self.0 &= !(1 << square);
     }
 
     pub fn toggle_bit(&mut self, square: u8) {
@@ -124,35 +124,50 @@ impl BitPos {
         }
     }
 
-    pub fn bit_move(&mut self, bit_move: Move) {
+    pub fn make_move(&mut self, bit_move: Move) {
         &self.all.unset_bit(bit_move.from);
         &self.all.set_bit(bit_move.to);
+        bit_move.print();
         match bit_move.color {
             Color::White => {
                 &self.white.unset_bit(bit_move.from);
                 &self.white.set_bit(bit_move.to);
-                match bit_move.kind as u8 {
-                    1 => {
+                if bit_move.capture {
+                    &self.black.unset_bit(bit_move.to);
+                    match bit_move.captured {
+                        Kind::King => {&self.bk.unset_bit(bit_move.to);}
+                        Kind::Queen => {&self.bq.unset_bit(bit_move.to);}
+                        Kind::Bishop => {&self.bb.unset_bit(bit_move.to);}
+                        Kind::Knight => {&self.bk.unset_bit(bit_move.to);}
+                        Kind::Rook => {&self.br.unset_bit(bit_move.to);}
+                        Kind::Pawn => {&self.bp.unset_bit(bit_move.to);}
+                        _ => {},
+                    }
+                } else if bit_move.en_passant_capture != 0 {
+                    &self.black.unset_bit(bit_move.en_passant_capture);
+                }
+                match bit_move.kind {
+                    Kind::King => {
                         &self.wk.unset_bit(bit_move.from);
                         &self.wk.set_bit(bit_move.to);
                     },
-                    2 => {
+                    Kind::Queen => {
                         &self.wq.unset_bit(bit_move.from);
                         &self.wq.set_bit(bit_move.to);
                     },
-                    3 => {
+                    Kind::Bishop => {
                         &self.wb.unset_bit(bit_move.from);
                         &self.wb.set_bit(bit_move.to);
                     },
-                    4 => {
+                    Kind::Knight => {
                         &self.wn.unset_bit(bit_move.from);
                         &self.wn.set_bit(bit_move.to);
                     },
-                    5 => {
+                    Kind::Rook => {
                         &self.wr.unset_bit(bit_move.from);
                         &self.wr.set_bit(bit_move.to);
                     },
-                    6 => {
+                    Kind::Pawn => {
                         &self.wp.unset_bit(bit_move.from);
                         &self.wp.set_bit(bit_move.to);
                     },
@@ -162,30 +177,44 @@ impl BitPos {
             Color::Black => {
                 &self.black.unset_bit(bit_move.from);
                 &self.black.set_bit(bit_move.to);
-                match bit_move.kind as u8 {
-                        1 => {
-                    &self.bk.unset_bit(bit_move.from);
-                    &self.bk.set_bit(bit_move.to);
+                if bit_move.capture {
+                    &self.white.unset_bit(bit_move.to);
+                    match bit_move.captured {
+                        Kind::King => {&self.wk.unset_bit(bit_move.to);}
+                        Kind::Queen => {&self.wq.unset_bit(bit_move.to);}
+                        Kind::Bishop => {&self.wb.unset_bit(bit_move.to);}
+                        Kind::Knight => {&self.wk.unset_bit(bit_move.to);}
+                        Kind::Rook => {&self.wr.unset_bit(bit_move.to);}
+                        Kind::Pawn => {&self.wp.unset_bit(bit_move.to);}
+                        _ => {},
+                    }
+                } else if bit_move.en_passant_capture != 0 {
+                    &self.white.unset_bit(bit_move.en_passant);
+                }
+                match bit_move.kind {
+                    Kind::King => {
+                        &self.bk.unset_bit(bit_move.from);
+                        &self.bk.set_bit(bit_move.to);
                     },
-                        2 => {
-                    &self.bq.unset_bit(bit_move.from);
-                    &self.bq.set_bit(bit_move.to);
+                    Kind::Queen => {
+                        &self.bq.unset_bit(bit_move.from);
+                        &self.bq.set_bit(bit_move.to);
                     },
-                        3 => {
-                    &self.bb.unset_bit(bit_move.from);
-                    &self.bb.set_bit(bit_move.to);
+                    Kind::Bishop => {
+                        &self.bb.unset_bit(bit_move.from);
+                        &self.bb.set_bit(bit_move.to);
                     },
-                        4 => {
-                    &self.bn.unset_bit(bit_move.from);
-                    &self.bn.set_bit(bit_move.to);
+                    Kind::Knight => {
+                        &self.bn.unset_bit(bit_move.from);
+                        &self.bn.set_bit(bit_move.to);
                     },
-                        5 => {
-                    &self.br.unset_bit(bit_move.from);
-                    &self.br.set_bit(bit_move.to);
+                    Kind::Rook => {
+                        &self.br.unset_bit(bit_move.from);
+                        &self.br.set_bit(bit_move.to);
                     },
-                        6 => {
-                    &self.bp.unset_bit(bit_move.from);
-                    &self.bp.set_bit(bit_move.to);
+                    Kind::Pawn => {
+                        &self.bp.unset_bit(bit_move.from);
+                        &self.bp.set_bit(bit_move.to);
                     },
                     _ => {}
                 }

@@ -177,8 +177,10 @@ impl Move {
         let kind = &self.kind;
         let from = Square::from(*&self.from);
         let to = Square::from(*&self.to);
+        let capture = &self.capture;
+        let captured = &self.captured;
         // println!("{color:?}, {kind:?}, {from:?} -> {to:?}");
-        println!("{from:?}{to:?}");
+        println!("{from:?}{to:?}: {color:?}, {kind:?}, {capture:?}, {captured:?}");
     }
 }
 
