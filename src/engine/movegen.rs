@@ -152,19 +152,19 @@ pub fn movegen(board: &mut BitPos, color: u8, precomputed: &PrecomputedBitBoards
 
 #[derive(Debug)]
 pub struct Move{
-    color: Color,
-    kind: Kind,
+    pub color: Color,
+    pub kind: Kind,
 
-    from: u8,
-    to: u8,
+    pub from: u8,
+    pub to: u8,
 
-    captured: Kind,
-    capture: bool,
-    en_passant: u8,
-    en_passant_capture: u8,
+    pub captured: Kind,
+    pub capture: bool,
+    pub en_passant: u8,
+    pub en_passant_capture: u8,
 
-    promotion: bool,
-    promotion_to: Kind,
+    pub promotion: bool,
+    pub promotion_to: Kind,
 }
 
 impl Move {

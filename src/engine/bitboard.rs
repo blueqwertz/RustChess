@@ -1,3 +1,5 @@
+use crate::engine::movegen::Move;
+
 #[derive(Copy, Clone)]
 pub struct BitBoard(pub u64);
 
@@ -122,68 +124,68 @@ impl BitPos {
         }
     }
 
-    pub fn bit_move(&mut self, color: Color, kind: u8, from: u8, to: u8) {
-        &self.all.unset_bit(from);
-        &self.all.set_bit(to);
+    pub fn bit_move(&mut self, bit_move: Move) {
+        &self.all.unset_bit(bit_move.from);
+        &self.all.set_bit(bit_move.to);
         match color {
             Color::White => {
-                &self.white.unset_bit(from);
-                &self.white.set_bit(to);
-                match kind {
+                &self.white.unset_bit(bit_move.from);
+                &self.white.set_bit(bit_move.to);
+                match bit_move.kind as u8 {
                     1 => {
-                        &self.wk.unset_bit(from);
-                        &self.wk.set_bit(to);
+                        &self.wk.unset_bit(bit_move.from);
+                        &self.wk.set_bit(bit_move.to);
                     },
                     2 => {
-                        &self.wq.unset_bit(from);
-                        &self.wq.set_bit(to);
+                        &self.wq.unset_bit(bit_move.from);
+                        &self.wq.set_bit(bit_move.to);
                     },
                     3 => {
-                        &self.wb.unset_bit(from);
-                        &self.wb.set_bit(to);
+                        &self.wb.unset_bit(bit_move.from);
+                        &self.wb.set_bit(bit_move.to);
                     },
                     4 => {
-                        &self.wn.unset_bit(from);
-                        &self.wn.set_bit(to);
+                        &self.wn.unset_bit(bit_move.from);
+                        &self.wn.set_bit(bit_move.to);
                     },
                     5 => {
-                        &self.wr.unset_bit(from);
-                        &self.wr.set_bit(to);
+                        &self.wr.unset_bit(bit_move.from);
+                        &self.wr.set_bit(bit_move.to);
                     },
                     6 => {
-                        &self.wp.unset_bit(from);
-                        &self.wp.set_bit(to);
+                        &self.wp.unset_bit(bit_move.from);
+                        &self.wp.set_bit(bit_move.to);
                     },
                     _ => {}
                 }
             },
             Color::Black => {
-                &self.black.unset_bit(from);
-                &self.black.set_bit(to);
+                &self.black.unset_bit(bit_move.from);
+                &self.black.set_bit(bit_move.to);
                 match kind {
                         1 => {
-                    &self.bk.unset_bit(from);
-                    &self.bk.set_bit(to);
+                    &self.bk.unset_bit(bit_move.from);
+                    &self.bk.set_bit(bit_move.to);
                     },
                         2 => {
-                    &self.bq.unset_bit(from);
-                    &self.bq.set_bit(to);
+                    &self.bq.unset_bit(bit_move.from);
+                    &self.bq.set_bit(bit_move.to);
                     },
                         3 => {
-                    &self.bb.unset_bit(from);
-                    &self.bb.set_bit(to);
+                    &self.bb.unset_bit(bit_move.from);
+                    &self.bb.set_bit(bit_move.to);
                     },
                         4 => {
-                    &self.bn.unset_bit(from);
-                    &self.bn.set_bit(to);
+                    &self.bn.unset_bit(bit_move.from);
+                    &self.bn.set_bit(bit_move.to);
                     },
                         5 => {
-                    &self.br.unset_bit(from);
-                    &self.br.set_bit(to);
+                    &self.br.unset_bit(bit_move.from);
+                    &self.br.set_bit(bit_move.to);
                     },
                         6 => {
-                    &self.bp.unset_bit(from);
-                    &self.bp.set_bit(to);
+                    &self.bp.unset_bit(bit_move.from);
+                    &self.bp.set_bit(bit_move.to);
                     },
                     _ => {}
                 }
