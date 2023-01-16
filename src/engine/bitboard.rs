@@ -127,7 +127,7 @@ impl BitPos {
     pub fn bit_move(&mut self, bit_move: Move) {
         &self.all.unset_bit(bit_move.from);
         &self.all.set_bit(bit_move.to);
-        match color {
+        match bit_move.color {
             Color::White => {
                 &self.white.unset_bit(bit_move.from);
                 &self.white.set_bit(bit_move.to);
@@ -162,7 +162,7 @@ impl BitPos {
             Color::Black => {
                 &self.black.unset_bit(bit_move.from);
                 &self.black.set_bit(bit_move.to);
-                match kind {
+                match bit_move.kind as u8 {
                         1 => {
                     &self.bk.unset_bit(bit_move.from);
                     &self.bk.set_bit(bit_move.to);
