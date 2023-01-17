@@ -209,7 +209,7 @@ impl Game {
 			&self.board.make_move(pos_move);
 			self.side_to_move = !self.side_to_move;
 
-			pos_move.print();
+			// pos_move.print();
 
 			let this_move = self.perft(depth - 1, false);
 			move_count += this_move;
