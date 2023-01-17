@@ -3,11 +3,14 @@ use crate::engine::bitboard::{BitBoard, BitPos, Color, Kind, Square};
 use std::time::Instant;
 use crate::engine::bitboard::Kind::Undefined;
 use crate::engine::game::PrecomputedBitBoards;
+use crate::engine::moves::{Move};
 
 pub fn movegen(board: &mut BitPos, color: bool, precomputed: &PrecomputedBitBoards) -> Vec<Move> {
 	let now = Instant::now();
 
 	let mut moves = Vec::new();
+
+	println!("Starting movegen...");
 
 	match color {
 		true => {
@@ -33,7 +36,7 @@ pub fn movegen(board: &mut BitPos, color: bool, precomputed: &PrecomputedBitBoar
 						}
 					}
 					else if board.wr.get_bit(i) {
-						let pos_moves = rook_moves(i, color,  board, precomputed.rook_directions, precomputed.king_dir_mask);
+						let pos_moves = rook_moves(i, color,  board, precomputed.rook_directions, precomputed.king_dir_masks);
 						for field in (pos_moves.0.trailing_zeros() as u8)..(64 - pos_moves.0.leading_zeros() as u8) {
 							if pos_moves.get_bit(field) {
 								let (mut captured, mut capture, mut en_passant, mut en_passant_capture, mut promotion, mut promotion_to) = (Kind::Undefined, false, 0, 0, false, Kind::Undefined);
@@ -46,7 +49,7 @@ pub fn movegen(board: &mut BitPos, color: bool, precomputed: &PrecomputedBitBoar
 						}
 					}
 					else if board.wb.get_bit(i) {
-						let pos_moves = bishop_moves(i, color,  board, precomputed.bishop_directions);
+						let pos_moves = bishop_moves(i, color,  board, precomputed.bishop_directions, precomputed.king_dir_masks);
 						for field in (pos_moves.0.trailing_zeros() as u8)..(64 - pos_moves.0.leading_zeros() as u8) {
 							if pos_moves.get_bit(field) {
 								let (mut captured, mut capture, mut en_passant, mut en_passant_capture, mut promotion, mut promotion_to) = (Kind::Undefined, false, 0, 0, false, Kind::Undefined);
@@ -59,7 +62,7 @@ pub fn movegen(board: &mut BitPos, color: bool, precomputed: &PrecomputedBitBoar
 						}
 					}
 					else if board.wq.get_bit(i) {
-						let pos_moves = queen_moves(i, color,  board, precomputed.rook_directions,precomputed.bishop_directions, precomputed.king_dir_mask);
+						let pos_moves = queen_moves(i, color,  board, precomputed.rook_directions,precomputed.bishop_directions, precomputed.king_dir_masks);
 						for field in (pos_moves.0.trailing_zeros() as u8)..(64 - pos_moves.0.leading_zeros() as u8) {
 							if pos_moves.get_bit(field) {
 								let (mut captured, mut capture, mut en_passant, mut en_passant_capture, mut promotion, mut promotion_to) = (Kind::Undefined, false, 0, 0, false, Kind::Undefined);
@@ -97,7 +100,7 @@ pub fn movegen(board: &mut BitPos, color: bool, precomputed: &PrecomputedBitBoar
 						}
 					}
 					else if board.br.get_bit(i) {
-						let pos_moves = rook_moves(i, color,  board, precomputed.rook_directions, precomputed.king_dir_mask);
+						let pos_moves = rook_moves(i, color,  board, precomputed.rook_directions, precomputed.king_dir_masks);
 						for field in (pos_moves.0.trailing_zeros() as u8)..(64 - pos_moves.0.leading_zeros() as u8) {
 							if pos_moves.get_bit(field) {
 								let (mut captured, mut capture, mut en_passant, mut en_passant_capture, mut promotion, mut promotion_to) = (Kind::Undefined, false, 0, 0, false, Kind::Undefined);
@@ -110,7 +113,7 @@ pub fn movegen(board: &mut BitPos, color: bool, precomputed: &PrecomputedBitBoar
 						}
 					}
 					else if board.bb.get_bit(i) {
-						let pos_moves = bishop_moves(i, color,  board, precomputed.bishop_directions);
+						let pos_moves = bishop_moves(i, color,  board, precomputed.bishop_directions, precomputed.king_dir_masks);
 						for field in (pos_moves.0.trailing_zeros() as u8)..(64 - pos_moves.0.leading_zeros() as u8) {
 							if pos_moves.get_bit(field) {
 								let (mut captured, mut capture, mut en_passant, mut en_passant_capture, mut promotion, mut promotion_to) = (Kind::Undefined, false, 0, 0, false, Kind::Undefined);
@@ -123,7 +126,7 @@ pub fn movegen(board: &mut BitPos, color: bool, precomputed: &PrecomputedBitBoar
 						}
 					}
 					else if board.bq.get_bit(i) {
-						let pos_moves = queen_moves(i, color,  board, precomputed.rook_directions,precomputed.bishop_directions, precomputed.king_dir_mask);
+						let pos_moves = queen_moves(i, color,  board, precomputed.rook_directions,precomputed.bishop_directions, precomputed.king_dir_masks);
 						for field in (pos_moves.0.trailing_zeros() as u8)..(64 - pos_moves.0.leading_zeros() as u8) {
 							if pos_moves.get_bit(field) {
 								let (mut captured, mut capture, mut en_passant, mut en_passant_capture, mut promotion, mut promotion_to) = (Kind::Undefined, false, 0, 0, false, Kind::Undefined);
@@ -147,40 +150,6 @@ pub fn movegen(board: &mut BitPos, color: bool, precomputed: &PrecomputedBitBoar
 	// println!("Total moves: {}", moves.len());
 
 	moves
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct Move{
-	pub color: Color,
-	pub kind: Kind,
-
-	pub from: u8,
-	pub to: u8,
-
-	pub captured: Kind,
-	pub capture: bool,
-	pub en_passant: u8,
-	pub en_passant_capture: u8,
-
-	pub promotion: bool,
-	pub promotion_to: Kind,
-}
-
-impl Move {
-	pub fn new(color: Color, kind: Kind, from: u8, to: u8, captured: Kind, capture: bool, en_passant: u8, en_passant_capture: u8, promotion: bool, promotion_to: Kind) -> Self {
-		Self{color, kind, from, to, captured, capture, en_passant, en_passant_capture, promotion, promotion_to}
-	}
-
-	pub fn print(&self) {
-		let color = &self.color;
-		let kind = &self.kind;
-		let from = Square::from(*&self.from);
-		let to = Square::from(*&self.to);
-		let capture = &self.capture;
-		let captured = &self.captured;
-		// println!("{color:?}, {kind:?}, {from:?} -> {to:?}");
-		println!("{from:?}{to:?}: {color:?}, {kind:?}, Capture: {capture:?}, {captured:?}");
-	}
 }
 
 fn pawn_moves(position: u8, color: bool, mut boards: &mut BitPos) -> Vec<Move> {
@@ -380,7 +349,7 @@ fn rook_moves (position: u8, color: bool, boards: &mut BitPos, given_rays: [[Bit
 	attack_board
 }
 
-fn bishop_moves (position: u8, color: bool, boards: &mut BitPos, given_rays: [[BitBoard; 4]; 64]) -> BitBoard {
+fn bishop_moves (position: u8, color: bool, boards: &mut BitPos, given_rays: [[BitBoard; 4]; 64], king_masks: [[[BitBoard; 64]; 4]; 64]) -> BitBoard {
 
 	// generate moves
 
@@ -403,7 +372,8 @@ fn bishop_moves (position: u8, color: bool, boards: &mut BitPos, given_rays: [[B
 				}
 				if masked_blockers.0 & boards.bk.0 != 0u64 {
 					// king in attack line
-					let blockers_no_king = masked_blockers.0 & (!boards.bk.0);
+					let mut blockers_no_king = masked_blockers.0 & (!boards.bk.0);
+					blockers_no_king &= king_masks[position as usize][direction][boards.bk.0.trailing_zeros() as usize].0;
 					if blockers_no_king.count_ones() == 1 {
 						let index: usize = match direction {
 							1 => 5,
@@ -468,7 +438,7 @@ fn bishop_moves (position: u8, color: bool, boards: &mut BitPos, given_rays: [[B
 
 fn queen_moves (position: u8, color: bool, boards: &mut BitPos, rook_rays: [[BitBoard; 4]; 64], bishop_rays: [[BitBoard; 4]; 64], king_masks: [[[BitBoard; 64]; 4]; 64]) -> BitBoard {
 	let rook_type_moves: BitBoard = rook_moves(position, color, boards, rook_rays, king_masks);
-	let bishop_type_moves: BitBoard = bishop_moves(position, color, boards, bishop_rays);
+	let bishop_type_moves: BitBoard = bishop_moves(position, color, boards, bishop_rays, king_masks);
 
 	BitBoard::from(rook_type_moves.0 | bishop_type_moves.0)
 

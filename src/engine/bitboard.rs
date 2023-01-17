@@ -1,5 +1,5 @@
 use std::time::Instant;
-use crate::engine::movegen::Move;
+use crate::engine::moves::Move;
 
 #[derive(Copy, Clone)]
 pub struct BitBoard(pub u64);
