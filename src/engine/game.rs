@@ -200,16 +200,18 @@ impl Game {
 
 	pub fn perft(&mut self, depth: u64, init: bool) -> u64{
 		if depth == 0 {
-			return 1u64
+			println!("end");
+			return 1
 		}
 		let moves: Vec<Move> = movegen(&mut self.board, self.side_to_move, &self.precomputed);
 		println!("Side switch");
 		let mut move_count: u64 = 0u64;
+		println!("{}", moves.len());
 		for pos_move in moves {
 			&self.board.make_move(pos_move);
 			self.side_to_move = !self.side_to_move;
 
-			// pos_move.print();
+			pos_move.print();
 
 			let this_move = self.perft(depth - 1, false);
 			move_count += this_move;
