@@ -10,8 +10,6 @@ pub fn movegen(board: &mut BitPos, color: bool, precomputed: &PrecomputedBitBoar
 
 	let mut moves = Vec::new();
 
-	println!("Starting movegen...");
-
 	match color {
 		true => {
 			for i in (board.white.0.trailing_zeros() as u8)..(64 - board.white.0.leading_zeros() as u8) {
@@ -71,6 +69,19 @@ pub fn movegen(board: &mut BitPos, color: bool, precomputed: &PrecomputedBitBoar
 									captured = board.get_piece_type_at(field);
 								}
 								moves.push(Move::new(Color::White, Kind::Queen, i, field, captured, capture, en_passant, en_passant_capture, promotion, promotion_to));
+							}
+						}
+					}
+					else if board.wk.get_bit(i) {
+						let pos_moves = king_moves(i, color,  board, precomputed.king_boards);
+						for field in (pos_moves.0.trailing_zeros() as u8)..(64 - pos_moves.0.leading_zeros() as u8) {
+							if pos_moves.get_bit(field) {
+								let (mut captured, mut capture, mut en_passant, mut en_passant_capture, mut promotion, mut promotion_to) = (Kind::Undefined, false, 0, 0, false, Kind::Undefined);
+								if board.black.get_bit(field) {
+									capture = true;
+									captured = board.get_piece_type_at(field);
+								}
+								moves.push(Move::new(Color::White, Kind::King, i, field, captured, capture, en_passant, en_passant_capture, promotion, promotion_to));
 							}
 						}
 					}
@@ -138,6 +149,19 @@ pub fn movegen(board: &mut BitPos, color: bool, precomputed: &PrecomputedBitBoar
 							}
 						}
 					}
+					else if board.bk.get_bit(i) {
+						let pos_moves = king_moves(i, color,  board, precomputed.king_boards);
+						for field in (pos_moves.0.trailing_zeros() as u8)..(64 - pos_moves.0.leading_zeros() as u8) {
+							if pos_moves.get_bit(field) {
+								let (mut captured, mut capture, mut en_passant, mut en_passant_capture, mut promotion, mut promotion_to) = (Kind::Undefined, false, 0, 0, false, Kind::Undefined);
+								if board.white.get_bit(field) {
+									capture = true;
+									captured = board.get_piece_type_at(field);
+								}
+								moves.push(Move::new(Color::Black, Kind::King, i, field, captured, capture, en_passant, en_passant_capture, promotion, promotion_to));
+							}
+						}
+					}
 				}
 			}
 		},
@@ -202,6 +226,9 @@ fn pawn_moves(position: u8, color: bool, mut boards: &mut BitPos) -> Vec<Move> {
 			}
 		},
 		false => {
+			let side_pawn_left: bool = Vec::from([0u8, 8u8, 16u8, 24u8, 32u8, 40u8, 48u8, 56u8]).contains(&position);
+			let side_pawn_right: bool = Vec::from([7u8, 15u8, 23u8, 31u8, 39u8, 47u8, 55u8, 63u8]).contains(&position);
+
 			if boards.can_move_direction(position, 4, Color::Black) {
 				if !boards.all.get_bit(position + 8) {
 					let (mut captured, mut capture, mut en_passant, mut en_passant_capture, mut promotion, mut promotion_to) = (Kind::Undefined, false, 0, 0, false, Kind::Undefined);
@@ -219,16 +246,22 @@ fn pawn_moves(position: u8, color: bool, mut boards: &mut BitPos) -> Vec<Move> {
 			let side_pawn_right: bool = Vec::from([7u8, 15u8, 23u8, 31u8, 39u8, 47u8, 55u8, 63u8]).contains(&position);
 
 			if boards.can_move_direction(position, 3, Color::Black) {
-				if boards.white.get_bit(position + 9) {
-					let (mut captured, mut capture, mut en_passant, mut en_passant_capture, mut promotion, mut promotion_to) = (boards.get_piece_type_at(position + 9), true, 0, 0, false, Kind::Undefined);
-					pos_moves.push(Move::new(Color::Black, Kind::Pawn, position, position + 9, captured, capture, en_passant, en_passant_capture, promotion, promotion_to));
+				if !side_pawn_right {
+					if boards.white.get_bit(position + 9) {
+						let (mut captured, mut capture, mut en_passant, mut en_passant_capture, mut promotion, mut promotion_to) = (boards.get_piece_type_at(position + 9), true, 0, 0, false, Kind::Undefined);
+						pos_moves.push(Move::new(Color::Black, Kind::Pawn, position, position + 9, captured, capture, en_passant, en_passant_capture, promotion, promotion_to));
+					}
+					boards.attack_black.set_bit(position + 9);
 				}
 			}
 
 			if boards.can_move_direction(position, 5, Color::Black) {
-				if boards.white.get_bit(position + 7) {
-					let (mut captured, mut capture, mut en_passant, mut en_passant_capture, mut promotion, mut promotion_to) = (boards.get_piece_type_at(position + 7), true, 0, 0, false, Kind::Undefined);
-					pos_moves.push(Move::new(Color::Black, Kind::Pawn, position, position + 7, captured, capture, en_passant, en_passant_capture, promotion, promotion_to));
+				if !side_pawn_left {
+					if boards.white.get_bit(position + 7) {
+						let (mut captured, mut capture, mut en_passant, mut en_passant_capture, mut promotion, mut promotion_to) = (boards.get_piece_type_at(position + 7), true, 0, 0, false, Kind::Undefined);
+						pos_moves.push(Move::new(Color::Black, Kind::Pawn, position, position + 7, captured, capture, en_passant, en_passant_capture, promotion, promotion_to));
+					}
+					boards.attack_black.set_bit(position + 7);
 				}
 			}
 		},
@@ -441,5 +474,13 @@ fn queen_moves (position: u8, color: bool, boards: &mut BitPos, rook_rays: [[Bit
 	let bishop_type_moves: BitBoard = bishop_moves(position, color, boards, bishop_rays, king_masks);
 
 	BitBoard::from(rook_type_moves.0 | bishop_type_moves.0)
+
+}
+
+fn king_moves(position: u8, color: bool, mut boards: &mut BitPos, king_boards: [BitBoard; 64]) -> BitBoard {
+	return match color {
+		true => {BitBoard::from(king_boards[position as usize].0 & (!boards.attack_black.0) & !(boards.white.0))}
+		false => {BitBoard::from(king_boards[position as usize].0 & (!boards.attack_white.0) & !(boards.black.0))}
+	}
 
 }

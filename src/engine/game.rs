@@ -10,6 +10,7 @@ pub struct PrecomputedBitBoards {
 	pub rook_directions: [[BitBoard; 4]; 64],
 	pub bishop_directions: [[BitBoard; 4]; 64],
 	pub knight_boards: [BitBoard; 64],
+	pub king_boards: [BitBoard; 64],
 
 	pub king_dir_masks: [[[BitBoard; 64]; 4]; 64],
 }
@@ -36,6 +37,24 @@ fn calc_knight_boards () ->  [BitBoard; 64] {
 	boards
 }
 
+fn calc_king_boards() -> [BitBoard; 64] {
+	let mut boards: [BitBoard; 64] = [BitBoard::empty(); 64];
+
+	let direction = [[0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1]];
+
+	for file in 0..8 {
+		for rank in 0..8 {
+			for pos_dir in direction {
+				if on_board(rank + pos_dir[0], file + pos_dir[1]) {
+					boards[(file * 8 + rank) as usize].set_bit(((file + pos_dir[1]) * 8 + rank + pos_dir[0]) as u8);
+				}
+			}
+		}
+	}
+
+	boards
+}
+
 fn calc_rook_directions () -> [[BitBoard; 4]; 64] {
 	let mut boards: [[BitBoard; 4]; 64] = [[BitBoard::empty(); 4]; 64];
 
@@ -47,14 +66,14 @@ fn calc_rook_directions () -> [[BitBoard; 4]; 64] {
                 let mut dir_board = BitBoard::empty();
                 let mut i = 1;
                 let dir = direction[index];
-                let (mut newX, mut newY) = (rank + dir[0] * i, file + dir[1] * i);
+                let (mut new_x, mut new_y) = (rank + dir[0] * i, file + dir[1] * i);
                 loop {
-					(newX, newY) = (rank + dir[0] * i, file + dir[1] * i);
-					if !on_board(newX, newY) {
+					(new_x, new_y) = (rank + dir[0] * i, file + dir[1] * i);
+					if !on_board(new_x, new_y) {
 						break
 					}
                     i += 1;
-                    dir_board.set_bit((newX + newY * 8) as u8);
+                    dir_board.set_bit((new_x + new_y * 8) as u8);
                 }
                 boards[(rank + file * 8) as usize][index].0 |= dir_board.0;
 			}
@@ -75,14 +94,14 @@ fn calc_bishop_directions () -> [[BitBoard; 4]; 64] {
 				let mut dir_board = BitBoard::empty();
 				let mut i = 1;
 				let dir = direction[index];
-				let (mut newX, mut newY) = (rank + dir[0] * i, file + dir[1] * i);
+				let (mut new_x, mut new_y) = (rank + dir[0] * i, file + dir[1] * i);
 				loop {
-					(newX, newY) = (rank + dir[0] * i, file + dir[1] * i);
-					if !on_board(newX, newY) {
+					(new_x, new_y) = (rank + dir[0] * i, file + dir[1] * i);
+					if !on_board(new_x, new_y) {
 						break
 					}
 					i += 1;
-					dir_board.set_bit((newX + newY * 8) as u8);
+					dir_board.set_bit((new_x + new_y * 8) as u8);
 				}
 				boards[(rank + file * 8) as usize][index].0 |= dir_board.0;
 			}
@@ -103,15 +122,15 @@ fn calc_king_dir_masks () -> [[[BitBoard; 64]; 4]; 64] {
 				let mut dir_board = BitBoard::empty();
 				let mut i = 1;
 				let dir = r_direction[index];
-				let (mut newX, mut newY) = (rank + dir[0] * i, file + dir[1] * i);
+				let (mut new_x, mut new_y) = (rank + dir[0] * i, file + dir[1] * i);
 				loop {
-					(newX, newY) = (rank + dir[0] * i, file + dir[1] * i);
-					if !on_board(newX, newY) {
+					(new_x, new_y) = (rank + dir[0] * i, file + dir[1] * i);
+					if !on_board(new_x, new_y) {
 						break
 					}
 					i += 1;
-					dir_board.set_bit((newX + newY * 8) as u8);
-					boards[(rank + file * 8) as usize][index][(newX + newY * 8) as usize].0 |= dir_board.0;
+					dir_board.set_bit((new_x + new_y * 8) as u8);
+					boards[(rank + file * 8) as usize][index][(new_x + new_y * 8) as usize].0 |= dir_board.0;
 				}
 			}
 		}
@@ -125,15 +144,15 @@ fn calc_king_dir_masks () -> [[[BitBoard; 64]; 4]; 64] {
 				let mut dir_board = BitBoard::empty();
 				let mut i = 1;
 				let dir = b_direction[index];
-				let (mut newX, mut newY) = (rank + dir[0] * i, file + dir[1] * i);
+				let (mut new_x, mut new_y) = (rank + dir[0] * i, file + dir[1] * i);
 				loop {
-					(newX, newY) = (rank + dir[0] * i, file + dir[1] * i);
-					if !on_board(newX, newY) {
+					(new_x, new_y) = (rank + dir[0] * i, file + dir[1] * i);
+					if !on_board(new_x, new_y) {
 						break
 					}
 					i += 1;
-					dir_board.set_bit((newX + newY * 8) as u8);
-					boards[(rank + file * 8) as usize][index][(newX + newY * 8) as usize].0 |= dir_board.0;
+					dir_board.set_bit((new_x + new_y * 8) as u8);
+					boards[(rank + file * 8) as usize][index][(new_x + new_y * 8) as usize].0 |= dir_board.0;
 				}
 			}
 		}
@@ -144,8 +163,10 @@ fn calc_king_dir_masks () -> [[[BitBoard; 64]; 4]; 64] {
 
 impl PrecomputedBitBoards {
 	fn new() -> Self {
+		println!("Calculating precomputed bitboards...");
 		Self {
 			knight_boards: calc_knight_boards(),
+			king_boards: calc_king_boards(),
 			bishop_directions: calc_bishop_directions(),
             rook_directions: calc_rook_directions(),
 			king_dir_masks: calc_king_dir_masks(),
@@ -193,15 +214,22 @@ impl Game {
 	}
 
 	pub fn start(&mut self) {
-// 		let moves: Vec<Move> = movegen(&mut self.board, Color::White as u8, &self.precomputed);
-// +		for pos_move in moves {
-// 			&self.board.make_move(pos_move);
-// 			&self.board.unmake_move(pos_move);
-// 		}
-//
-		println!("Starting");
 
-		movegen(&mut self.board, self.side_to_move, &self.precomputed);
+		movegen(&mut self.board, false, &self.precomputed);
+
+		self.board.attack_black.print();
+
+		println!("Starting game...");
+
+		let moves: Vec<Move> = movegen(&mut self.board, true, &self.precomputed);
+		for pos_move in moves {
+			pos_move.print();
+			&self.board.make_move(pos_move);
+			&self.board.unmake_move(pos_move);
+		}
+
+		// movegen(&mut self.board, self.side_to_move, &self.precomputed);
+		&self.board.print();
 
 		// let move_count = self.perft(2);
 		// println!("{}", move_count);
