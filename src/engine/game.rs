@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::ops::Div;
 use std::path::{Prefix, PrefixComponent};
+use std::time::Instant;
 use crate::engine::bitboard::{BitBoard, BitPos, Color, Square};
 use crate::engine::movegen::{movegen};
 use crate::engine::moves::Move;
@@ -197,41 +198,52 @@ impl Game {
 		}
 	}
 
-	pub fn perft(&mut self, depth: u64) -> u64{
+	pub fn perft(&mut self, depth: u64, init: bool) -> u64{
 		if depth == 0 {
 			return 1u64
 		}
 		let moves: Vec<Move> = movegen(&mut self.board, self.side_to_move, &self.precomputed);
-		let mut move_count = 0;
+		println!("Side switch");
+		let mut move_count: u64 = 0u64;
 		for pos_move in moves {
 			&self.board.make_move(pos_move);
 			self.side_to_move = !self.side_to_move;
-			move_count += self.perft(depth - 1);
+
+			pos_move.print();
+
+			let this_move = self.perft(depth - 1, false);
+			move_count += this_move;
+
 			&self.board.unmake_move(pos_move);
 			self.side_to_move = !self.side_to_move;
+
+			if init {
+				println!("{:?}{:?}: {}", Square::from(pos_move.from), Square::from(pos_move.to), this_move);
+			}
 		}
 		move_count
 	}
 
 	pub fn start(&mut self) {
 
-		movegen(&mut self.board, false, &self.precomputed);
+		movegen(&mut self.board, !(self.side_to_move), &self.precomputed);
 
-		self.board.attack_black.print();
 
 		println!("Starting game...");
 
-		let moves: Vec<Move> = movegen(&mut self.board, true, &self.precomputed);
-		for pos_move in moves {
-			pos_move.print();
-			&self.board.make_move(pos_move);
-			&self.board.unmake_move(pos_move);
-		}
-
-		// movegen(&mut self.board, self.side_to_move, &self.precomputed);
 		&self.board.print();
-
-		// let move_count = self.perft(2);
-		// println!("{}", move_count);
+		let now = Instant::now();
+		// let moves = movegen(&mut self.board, self.side_to_move, &self.precomputed);
+		// self.board.make_move(moves[2]);
+		// self.board.print();
+		let move_count = self.perft(3, true);
+		println!("{} nodes in {} microseconds", move_count, now.elapsed().as_micros());
 	}
 }
+
+// let moves: Vec<Move> = movegen(&mut self.board, true, &self.precomputed);
+// for pos_move in moves {
+// 	pos_move.print();
+// 	&self.board.make_move(pos_move);
+// 	&self.board.unmake_move(pos_move);
+// }
