@@ -178,7 +178,7 @@ impl PrecomputedBitBoards {
 pub struct Game {
 	pub board: BitPos,
 	pub side_to_move: bool,
-	precomputed: PrecomputedBitBoards,
+	pub precomputed: PrecomputedBitBoards,
 }
 
 impl Game {
@@ -191,9 +191,13 @@ impl Game {
 	}
 
 	pub fn from_fen(fen: &str) -> Self {
+		let mut fen_parts: [&str; 6] = [""; 6];
+		for (i, part) in fen.split(" ").enumerate() {
+			fen_parts[i] = part;
+		}
 		Self {
-			board: BitPos::from_fen(fen),
-			side_to_move: true,
+			board: BitPos::from_fen(fen_parts[0]),
+			side_to_move: fen_parts[1] == "w",
 			precomputed: PrecomputedBitBoards::new(),
 		}
 	}
@@ -203,7 +207,21 @@ impl Game {
 			return 1
 		}
 
+		if init {
+			movegen(&mut self.board, !(self.side_to_move), &self.precomputed);
+		}
+
 		self.side_to_move = side_to_move;
+
+		let (a_w, a_b, p_w, p_b) = (self.board.attack_white.0, self.board.attack_black.0, self.board.pinned_white, self.board.pinned_black);
+
+		if self.side_to_move {
+			self.board.attack_white = BitBoard::empty();
+			self.board.pinned_black = [BitBoard::empty(); 8];
+		} else {
+			self.board.attack_black = BitBoard::empty();
+			self.board.pinned_white = [BitBoard::empty(); 8];
+		}
 
 		let moves: Vec<Move> = movegen(&mut self.board, self.side_to_move, &self.precomputed);
 		let mut move_count: u64 = 0u64;
@@ -221,6 +239,12 @@ impl Game {
 				println!("{:?}{:?}: {}", Square::from(pos_move.from), Square::from(pos_move.to), this_move);
 			}
 		}
+
+		self.board.attack_white.0 = a_w;
+		self.board.attack_black.0 = a_b;
+		self.board.pinned_white = p_w;
+		self.board.pinned_black = p_b;
+
 		move_count
 	}
 

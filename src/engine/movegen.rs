@@ -177,12 +177,6 @@ pub fn movegen(board: &mut BitPos, color: bool, precomputed: &PrecomputedBitBoar
 }
 
 fn pawn_moves(position: u8, color: bool, mut boards: &mut BitPos) -> Vec<Move> {
-	//     -16*
-	// -9* -8 -7*
-	//      X
-	//  7*  8   9*
-	//      16*
-
 	let mut pos_moves: Vec<Move> = Vec::new();
 
 
@@ -265,7 +259,6 @@ fn pawn_moves(position: u8, color: bool, mut boards: &mut BitPos) -> Vec<Move> {
 				}
 			}
 		},
-		_ => {}
 	}
 
 	pos_moves
@@ -304,9 +297,9 @@ fn rook_moves (position: u8, color: bool, boards: &mut BitPos, given_rays: [[Bit
 	let mut rays = given_rays[position as usize];
 	let mut attack_board = BitBoard::empty();
 
-	match color {
+	return match color {
 		true => {
-			for direction in 0usize..4 {
+			for direction in 0usize..4usize {
 				if !boards.can_move_direction(position, direction * 2, Color::White) {
 					continue
 				}
@@ -340,11 +333,11 @@ fn rook_moves (position: u8, color: bool, boards: &mut BitPos, given_rays: [[Bit
 
 			attack_board.0 &= !boards.white.0;
 			boards.attack_white.0 |= attack_board.0;
-			return attack_board
+			attack_board
 		},
 		false => {
 			for direction in 0usize..4usize {
-				if !boards.can_move_direction(position, direction * 2, Color::Black) {
+				if !boards.can_move_direction(position, direction * 2 + 1, Color::Black) {
 					continue
 				}
 				let masked_blockers = BitBoard::from(rays[direction].0 & blockers);
@@ -352,10 +345,10 @@ fn rook_moves (position: u8, color: bool, boards: &mut BitPos, given_rays: [[Bit
 					attack_board.0 |= rays[direction].0;
 					continue
 				}
-				if masked_blockers.0 & boards.bk.0 != 0u64 {
+				if masked_blockers.0 & boards.wk.0 != 0u64 {
 					// king in attack line
-					let blockers_no_king = masked_blockers.0 & (!boards.wk.0);
-
+					let mut blockers_no_king = masked_blockers.0 & (!boards.wk.0);
+					blockers_no_king &= king_masks[position as usize][direction][boards.wk.0.trailing_zeros() as usize].0;
 					if blockers_no_king.count_ones() == 1 {
 						let index: usize = match direction {
 							0 => 4,
@@ -369,17 +362,18 @@ fn rook_moves (position: u8, color: bool, boards: &mut BitPos, given_rays: [[Bit
 				}
 				for sq in (masked_blockers.0.trailing_zeros() as u8)..(64 - masked_blockers.0.leading_zeros() as u8) {
 					if masked_blockers.get_bit(sq) {
-						rays[direction].0 &= rays[direction].0 & (!given_rays[sq as usize][direction].0);
+						rays[direction].0 &= rays[direction].0 ^ (given_rays[sq as usize][direction].0);
 					}
 				}
 				attack_board.0 |= rays[direction].0;
 			}
+
 			attack_board.0 &= !boards.black.0;
 			boards.attack_black.0 |= attack_board.0;
-			return attack_board
+			attack_board
 		},
 		_ => {
-			return attack_board
+			attack_board
 		}
 	}
 }
@@ -394,7 +388,7 @@ fn bishop_moves (position: u8, color: bool, boards: &mut BitPos, given_rays: [[B
 	let mut attack_board = BitBoard::empty();
 
 
-	match color {
+	return match color {
 		true => {
 			for direction in 0usize..4usize {
 				if !boards.can_move_direction(position, direction * 2, Color::White) {
@@ -430,11 +424,11 @@ fn bishop_moves (position: u8, color: bool, boards: &mut BitPos, given_rays: [[B
 
 			attack_board.0 &= !boards.white.0;
 			boards.attack_white.0 |= attack_board.0;
-			return attack_board
+			attack_board
 		},
 		false => {
-			for direction in 0..4 {
-				if !boards.can_move_direction(position, direction * 2, Color::Black) {
+			for direction in 0usize..4usize {
+				if !boards.can_move_direction(position, direction * 2 + 1, Color::Black) {
 					continue
 				}
 				let masked_blockers = BitBoard::from(rays[direction].0 & blockers);
@@ -442,9 +436,10 @@ fn bishop_moves (position: u8, color: bool, boards: &mut BitPos, given_rays: [[B
 					attack_board.0 |= rays[direction].0;
 					continue
 				}
-				if masked_blockers.0 & boards.bk.0 != 0u64 {
+				if masked_blockers.0 & boards.wk.0 != 0u64 {
 					// king in attack line
-					let blockers_no_king = masked_blockers.0 & (!boards.wk.0);
+					let mut blockers_no_king = masked_blockers.0 & (!boards.wk.0);
+					blockers_no_king &= king_masks[position as usize][direction][boards.wk.0.trailing_zeros() as usize].0;
 					if blockers_no_king.count_ones() == 1 {
 						let index: usize = match direction {
 							1 => 5,
@@ -458,17 +453,18 @@ fn bishop_moves (position: u8, color: bool, boards: &mut BitPos, given_rays: [[B
 				}
 				for sq in (masked_blockers.0.trailing_zeros() as u8)..(64 - masked_blockers.0.leading_zeros() as u8) {
 					if masked_blockers.get_bit(sq) {
-						rays[direction].0 &= rays[direction].0 & (!given_rays[sq as usize][direction].0);
+						rays[direction].0 &= rays[direction].0 ^ (given_rays[sq as usize][direction].0);
 					}
 				}
 				attack_board.0 |= rays[direction].0;
 			}
+
 			attack_board.0 &= !boards.black.0;
 			boards.attack_black.0 |= attack_board.0;
-			return attack_board
+			attack_board
 		},
 		_ => {
-			return attack_board
+			attack_board
 		}
 	}
 
