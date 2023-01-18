@@ -21,7 +21,7 @@ fn main() {
 					let now = Instant::now();
 
 					let move_count = game.perft(number, game.side_to_move, true);
-					println!("\x1b[1m{}\x1b[0m nodes in \x1b[1m{}\x1b[0m microseconds", move_count, now.elapsed().as_micros());
+					println!("\x1b[1m{}\x1b[0m nodes in \x1b[1m{}\x1b[0m microseconds, {} NPS", move_count, now.elapsed().as_micros(), (((move_count as f64) / (now.elapsed().as_nanos() as f64)) * 1_000_000_000f64) as u64);
 
 				},
 				Err(_) => {
