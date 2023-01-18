@@ -2,10 +2,11 @@ use std::collections::HashMap;
 use std::ops::Div;
 use std::path::{Prefix, PrefixComponent};
 use std::time::Instant;
-use crate::engine::bitboard::{BitBoard, BitPos, Color, Square};
+use crate::engine::bitboard::{BitBoard, BitPos, Color, Kind, Square};
 use crate::engine::movegen::{movegen};
 use crate::engine::moves::Move;
 use crate::engine::bitboard::Kind::Undefined;
+use std::io;
 
 pub struct PrecomputedBitBoards {
 	pub rook_directions: [[BitBoard; 4]; 64],
@@ -164,7 +165,6 @@ fn calc_king_dir_masks () -> [[[BitBoard; 64]; 4]; 64] {
 
 impl PrecomputedBitBoards {
 	fn new() -> Self {
-		println!("Calculating precomputed bitboards...");
 		Self {
 			knight_boards: calc_knight_boards(),
 			king_boards: calc_king_boards(),
@@ -198,26 +198,24 @@ impl Game {
 		}
 	}
 
-	pub fn perft(&mut self, depth: u64, init: bool) -> u64{
+	pub fn perft(&mut self, depth: u64, side_to_move: bool, init: bool) -> u64{
 		if depth == 0 {
-			println!("end");
 			return 1
 		}
+
+		self.side_to_move = side_to_move;
+
 		let moves: Vec<Move> = movegen(&mut self.board, self.side_to_move, &self.precomputed);
-		println!("Side switch");
 		let mut move_count: u64 = 0u64;
-		println!("{}", moves.len());
+
 		for pos_move in moves {
+
 			&self.board.make_move(pos_move);
-			self.side_to_move = !self.side_to_move;
 
-			pos_move.print();
-
-			let this_move = self.perft(depth - 1, false);
+			let this_move = self.perft(depth - 1, !side_to_move, false);
 			move_count += this_move;
 
 			&self.board.unmake_move(pos_move);
-			self.side_to_move = !self.side_to_move;
 
 			if init {
 				println!("{:?}{:?}: {}", Square::from(pos_move.from), Square::from(pos_move.to), this_move);
@@ -228,24 +226,16 @@ impl Game {
 
 	pub fn start(&mut self) {
 
-		movegen(&mut self.board, !(self.side_to_move), &self.precomputed);
+		// movegen(&mut self.board, !(self.side_to_move), &self.precomputed);
 
 
 		println!("Starting game...");
 
-		&self.board.print();
 		let now = Instant::now();
-		// let moves = movegen(&mut self.board, self.side_to_move, &self.precomputed);
-		// self.board.make_move(moves[2]);
-		// self.board.print();
-		let move_count = self.perft(3, true);
-		println!("{} nodes in {} microseconds", move_count, now.elapsed().as_micros());
+
+		movegen(&mut self.board, !(self.side_to_move), &self.precomputed);
+		println!("\x1b[1m{}\x1b[0m nanoseconds", now.elapsed().as_nanos());
+
+		self.board.print();
 	}
 }
-
-// let moves: Vec<Move> = movegen(&mut self.board, true, &self.precomputed);
-// for pos_move in moves {
-// 	pos_move.print();
-// 	&self.board.make_move(pos_move);
-// 	&self.board.unmake_move(pos_move);
-// }

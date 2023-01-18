@@ -55,7 +55,7 @@ pub fn movegen(board: &mut BitPos, color: bool, precomputed: &PrecomputedBitBoar
 									capture = true;
 									captured = board.get_piece_type_at(field);
 								}
-								moves.push(Move::new(Color::White, Kind::Rook, i, field, captured, capture, en_passant, en_passant_capture, promotion, promotion_to));
+								moves.push(Move::new(Color::White, Kind::Bishop, i, field, captured, capture, en_passant, en_passant_capture, promotion, promotion_to));
 							}
 						}
 					}
@@ -219,7 +219,7 @@ fn pawn_moves(position: u8, color: bool, mut boards: &mut BitPos) -> Vec<Move> {
 				if !side_pawn_right {
 					if boards.black.get_bit(position - 7) {
 						let (mut captured, mut capture, mut en_passant, mut en_passant_capture, mut promotion, mut promotion_to) = (boards.get_piece_type_at(position - 7), true, 0, 0, false, Kind::Undefined);
-						pos_moves.push(Move::new(Color::Black, Kind::Pawn, position, position - 7, captured, capture, en_passant, en_passant_capture, promotion, promotion_to));
+						pos_moves.push(Move::new(Color::White, Kind::Pawn, position, position - 7, captured, capture, en_passant, en_passant_capture, promotion, promotion_to));
 					}
 					boards.attack_white.set_bit(position - 7);
 				}
@@ -340,6 +340,7 @@ fn rook_moves (position: u8, color: bool, boards: &mut BitPos, given_rays: [[Bit
 
 			attack_board.0 &= !boards.white.0;
 			boards.attack_white.0 |= attack_board.0;
+			return attack_board
 		},
 		false => {
 			for direction in 0usize..4usize {
@@ -375,11 +376,12 @@ fn rook_moves (position: u8, color: bool, boards: &mut BitPos, given_rays: [[Bit
 			}
 			attack_board.0 &= !boards.black.0;
 			boards.attack_black.0 |= attack_board.0;
+			return attack_board
 		},
-		_ => {}
+		_ => {
+			return attack_board
+		}
 	}
-
-	attack_board
 }
 
 fn bishop_moves (position: u8, color: bool, boards: &mut BitPos, given_rays: [[BitBoard; 4]; 64], king_masks: [[[BitBoard; 64]; 4]; 64]) -> BitBoard {
@@ -428,6 +430,7 @@ fn bishop_moves (position: u8, color: bool, boards: &mut BitPos, given_rays: [[B
 
 			attack_board.0 &= !boards.white.0;
 			boards.attack_white.0 |= attack_board.0;
+			return attack_board
 		},
 		false => {
 			for direction in 0..4 {
@@ -462,11 +465,13 @@ fn bishop_moves (position: u8, color: bool, boards: &mut BitPos, given_rays: [[B
 			}
 			attack_board.0 &= !boards.black.0;
 			boards.attack_black.0 |= attack_board.0;
+			return attack_board
 		},
-		_ => {}
+		_ => {
+			return attack_board
+		}
 	}
 
-	attack_board
 }
 
 fn queen_moves (position: u8, color: bool, boards: &mut BitPos, rook_rays: [[BitBoard; 4]; 64], bishop_rays: [[BitBoard; 4]; 64], king_masks: [[[BitBoard; 64]; 4]; 64]) -> BitBoard {
@@ -482,5 +487,4 @@ fn king_moves(position: u8, color: bool, mut boards: &mut BitPos, king_boards: [
 		true => {BitBoard::from(king_boards[position as usize].0 & (!boards.attack_black.0) & !(boards.white.0))}
 		false => {BitBoard::from(king_boards[position as usize].0 & (!boards.attack_white.0) & !(boards.black.0))}
 	}
-
 }
