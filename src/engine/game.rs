@@ -207,24 +207,31 @@ impl Game {
 			return 1
 		}
 
-		if init {
-			movegen(&mut self.board, !(self.side_to_move), &self.precomputed);
-		}
-
 		self.side_to_move = side_to_move;
 
 		let (a_w, a_b, p_w, p_b) = (self.board.attack_white.0, self.board.attack_black.0, self.board.pinned_white, self.board.pinned_black);
 
-		if self.side_to_move {
+		// self.board.attack_white.print();
+
+		if side_to_move {
+			// whites move
+			println!("clearing attack_white, depth: {}", depth);
 			self.board.attack_white = BitBoard::empty();
 			self.board.pinned_black = [BitBoard::empty(); 8];
 		} else {
+			// blacks move
+			println!("clearing attack_black, depth: {}", depth);
 			self.board.attack_black = BitBoard::empty();
 			self.board.pinned_white = [BitBoard::empty(); 8];
 		}
 
+		// self.board.attack_white.print();
+
 		let moves: Vec<Move> = movegen(&mut self.board, self.side_to_move, &self.precomputed);
 		let mut move_count: u64 = 0u64;
+
+		// self.board.attack_white.print();
+		// self.board.print();
 
 		for pos_move in moves {
 
@@ -249,9 +256,6 @@ impl Game {
 	}
 
 	pub fn start(&mut self) {
-
-		// movegen(&mut self.board, !(self.side_to_move), &self.precomputed);
-
 
 		println!("Starting game...");
 

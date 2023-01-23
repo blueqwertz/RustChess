@@ -22,8 +22,10 @@ fn main() {
 			match number_str.parse::<u64>() {
 				Ok(number) => {
 					let now = Instant::now();
-
+					println!("{}", game.side_to_move);
+					movegen(&mut game.board, !game.side_to_move, &game.precomputed);
 					let move_count = game.perft(number, game.side_to_move, true);
+					game.board.attack_white.print();
 					println!("\x1b[1m{}\x1b[0m nodes in \x1b[1m{}\x1b[0m microseconds, {} NPS", move_count, now.elapsed().as_micros(), (((move_count as f64) / (now.elapsed().as_nanos() as f64)) * 1_000_000_000f64) as u64);
 				},
 				Err(_) => {

@@ -480,7 +480,15 @@ fn queen_moves (position: u8, color: bool, boards: &mut BitPos, rook_rays: [[Bit
 
 fn king_moves(position: u8, color: bool, mut boards: &mut BitPos, king_boards: [BitBoard; 64]) -> BitBoard {
 	return match color {
-		true => {BitBoard::from(king_boards[position as usize].0 & (!boards.attack_black.0) & !(boards.white.0))}
-		false => {BitBoard::from(king_boards[position as usize].0 & (!boards.attack_white.0) & !(boards.black.0))}
+		true => {
+			let move_board: BitBoard = BitBoard::from(king_boards[position as usize].0 & (!boards.attack_black.0) & !(boards.white.0));
+			boards.attack_white.0 |= move_board.0;
+			return move_board
+		}
+		false => {
+			let move_board: BitBoard = BitBoard::from(king_boards[position as usize].0 & (!boards.attack_white.0) & !(boards.black.0));
+			boards.attack_black.0 |= move_board.0;
+			return move_board
+		}
 	}
 }
