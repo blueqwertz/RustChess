@@ -25,7 +25,6 @@ fn main() {
 
 					let move_count = game.perft(number, game.side_to_move, true);
 					println!("\x1b[1m{}\x1b[0m nodes in \x1b[1m{}\x1b[0m microseconds, {} NPS", move_count, now.elapsed().as_micros(), (((move_count as f64) / (now.elapsed().as_nanos() as f64)) * 1_000_000_000f64) as u64);
-					game.board.attack_white.print();
 				},
 				Err(_) => {
 					println!("The input after 'perft ' is not a valid number");
